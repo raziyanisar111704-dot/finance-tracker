@@ -5,7 +5,9 @@ import { ensureDb } from './middleware/ensureDb.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 import { sameOriginOnly } from './middleware/sameOriginOnly.js';
 import authRoutes from './routes/auth.routes.js';
+import categoryRoutes from './routes/categories.routes.js';
 import healthRoutes from './routes/health.routes.js';
+import transactionRoutes from './routes/transactions.routes.js';
 
 // Builds the Express app without starting a server, so the same app can be
 // used by app.listen() locally, by Vercel in production, and by tests.
@@ -31,6 +33,8 @@ app.use('/api/health', healthRoutes);
 // Every route registered below this line gets a ready database connection.
 app.use('/api', ensureDb);
 app.use('/api/auth', authRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/transactions', transactionRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

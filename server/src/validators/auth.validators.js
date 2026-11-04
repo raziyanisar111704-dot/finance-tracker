@@ -1,14 +1,9 @@
 import { z } from 'zod';
 import { MAX_AMOUNT_MINOR } from '../constants.js';
 import { isValidTimeZone } from '../utils/dates.js';
+import { hasAtLeastOneField, text } from './common.js';
 
 const SUPPORTED_CURRENCIES = new Set(Intl.supportedValuesOf('currency'));
-
-// "Email is required." when missing, "Email must be text." for wrong types.
-const text = (label) =>
-  z.string({
-    error: (issue) => (issue.input === undefined ? `${label} is required.` : `${label} must be text.`),
-  });
 
 const email = text('Email')
   .trim()
@@ -50,7 +45,7 @@ export const updateMeSchema = z
       .max(MAX_AMOUNT_MINOR)
       .optional(),
   })
-  .refine((changes) => Object.keys(changes).length > 0, 'Nothing to update.');
+  .refine(...hasAtLeastOneField);
 
 export const deleteMeSchema = z.object({
   password: text('Password').min(1, 'Password is required.'),
