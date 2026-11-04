@@ -15,6 +15,11 @@ body {
   @apply bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100;
 }
 
+/* While a dialog is open, the page behind it doesn't scroll. */
+html:has(dialog:modal) {
+  overflow: hidden;
+}
+
 /* Money columns line up when digits have equal width. */
 .tabular {
   font-variant-numeric: tabular-nums;

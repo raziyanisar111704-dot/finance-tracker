@@ -1,7 +1,9 @@
-export function Card({ as: Element = 'section', className = '', children, ...props }) {
+// padded={false} for content that runs edge to edge (lists, tables). Passing
+// "p-0" in className wouldn't work: both classes would apply and p-5 wins.
+export function Card({ as: Element = 'section', padded = true, className = '', children, ...props }) {
   return (
     <Element
-      className={`rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 ${className}`}
+      className={`rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900 ${padded ? 'p-5' : ''} ${className}`}
       {...props}
     >
       {children}

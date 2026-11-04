@@ -25,6 +25,14 @@ export const queryClient = new QueryClient({
   },
 });
 
+// After a transaction changes, every total, budget and report may be out of
+// date. Refetch all of them (anything except the user and categories).
+export function invalidateFinanceData() {
+  return queryClient.invalidateQueries({
+    predicate: (query) => ![ME_KEY[0], 'categories'].includes(query.queryKey[0]),
+  });
+}
+
 // Removes every cached query except the current user, e.g. on log out, so
 // the next person on a shared device never sees the previous person's data.
 export function clearPrivateData() {
