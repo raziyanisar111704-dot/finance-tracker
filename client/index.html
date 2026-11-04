@@ -4,9 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content="Personal finance tracker: income, expenses, budgets and reports." />
-    <meta name="theme-color" content="#0f766e" />
+    <meta name="theme-color" content="#f8fafc" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>Finance Tracker</title>
+    <script>
+      // Apply the saved theme before the first paint, so dark mode never flashes white.
+      try {
+        var theme = localStorage.getItem('theme');
+        var dark = theme === 'dark' || (theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.classList.toggle('dark', dark);
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -10,7 +10,13 @@ export default defineConfig({
     // talks to localhost:5173, so it behaves exactly like production
     // (one origin, no CORS, first-party cookies).
     proxy: {
-      '/api': 'http://localhost:4000',
+      '/api': {
+        target: 'http://localhost:4000',
+        // Keep the browser's Host header (localhost:5173). The shorthand form
+        // rewrites it to localhost:4000, which makes the server's same-origin
+        // (CSRF) check reject every POST.
+        changeOrigin: false,
+      },
     },
   },
 });
