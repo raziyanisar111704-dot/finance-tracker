@@ -14,6 +14,18 @@ export function errorHandler(err, req, res, next) {
     error = new AppError(400, 'Request body is not valid JSON.');
   } else if (err.type === 'entity.too.large') {
     error = new AppError(413, 'Request body is too large.');
+  } else if (err.code === 11000) {
+    // MongoDB unique index violation
+    error = new AppError(409, 'This item already exists.');
+  } else if (err.name === 'CastError') {
+    error = new AppError(400, 'Invalid identifier.');
+  } else if (err.name === 'ValidationError') {
+    // Mongoose model validation (a safety net behind the Zod validators)
+    error = new AppError(
+      400,
+      'Please check the highlighted fields.',
+      Object.values(err.errors).map((e) => ({ field: e.path, message: e.message })),
+    );
   }
 
   const isKnown = error instanceof AppError;

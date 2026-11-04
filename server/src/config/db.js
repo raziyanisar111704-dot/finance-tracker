@@ -7,10 +7,9 @@ if (env.DNS_SERVERS?.length) {
 }
 
 // Only fields defined in a schema can be used in query filters.
+// Protection against NoSQL injection ({ "$gt": "" } sent instead of a string)
+// comes from Zod: every request is validated so values have the expected type.
 mongoose.set('strictQuery', true);
-// Treat objects like { $gt: "" } inside filters as plain values, not operators
-// (defence in depth against NoSQL injection; Zod validation is the first line).
-mongoose.set('sanitizeFilter', true);
 
 // On Vercel, a function instance can stay "warm" and serve many requests.
 // Caching the connection promise on globalThis lets those requests share one

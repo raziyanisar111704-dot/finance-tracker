@@ -10,6 +10,8 @@ const envSchema = z.object({
     .string()
     .regex(/^mongodb(\+srv)?:\/\//, 'must start with mongodb:// or mongodb+srv://'),
   MONGODB_DB_NAME: z.string().min(1).default('finance-tracker'),
+  // Signs login tokens. Long and random; different for local and production.
+  JWT_SECRET: z.string().min(32, 'must be at least 32 characters long'),
   // Optional, local development only: comma-separated DNS servers for Node to
   // use, e.g. "8.8.8.8,1.1.1.1". Needed when Node can't resolve mongodb+srv
   // addresses (error: querySrv ECONNREFUSED). Leave unset on Vercel.
