@@ -5,8 +5,12 @@ import { ensureDb } from './middleware/ensureDb.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 import { sameOriginOnly } from './middleware/sameOriginOnly.js';
 import authRoutes from './routes/auth.routes.js';
+import budgetRoutes from './routes/budgets.routes.js';
 import categoryRoutes from './routes/categories.routes.js';
+import exportRoutes from './routes/export.routes.js';
 import healthRoutes from './routes/health.routes.js';
+import reportRoutes from './routes/reports.routes.js';
+import summaryRoutes from './routes/summary.routes.js';
 import transactionRoutes from './routes/transactions.routes.js';
 
 // Builds the Express app without starting a server, so the same app can be
@@ -35,6 +39,10 @@ app.use('/api', ensureDb);
 app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/transactions', transactionRoutes);
+app.use('/api/budgets', budgetRoutes);
+app.use('/api/summary', summaryRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/export', exportRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

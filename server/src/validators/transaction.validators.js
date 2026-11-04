@@ -1,6 +1,12 @@
 import { z } from 'zod';
 import { PAYMENT_METHODS, TRANSACTION_TYPES } from '../constants.js';
-import { amountMinor, dateString, hasAtLeastOneField, objectId } from './common.js';
+import {
+  amountMinor,
+  dateRangeIsOrdered,
+  dateString,
+  hasAtLeastOneField,
+  objectId,
+} from './common.js';
 
 const type = z.enum(TRANSACTION_TYPES, { error: 'Type must be income or expense.' });
 const paymentMethod = z.enum(PAYMENT_METHODS, { error: 'Choose a valid payment method.' });
@@ -39,8 +45,4 @@ export const listTransactionsQuery = z
     page: z.coerce.number().int().min(1).default(1),
     limit: z.coerce.number().int().min(1).max(100).default(20),
   })
-  // "YYYY-MM-DD" strings compare correctly as text.
-  .refine((query) => !query.from || !query.to || query.from <= query.to, {
-    message: 'The start date must be on or before the end date.',
-    path: ['to'],
-  });
+  .refine(...dateRangeIsOrdered);

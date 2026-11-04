@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { MAX_AMOUNT_MINOR } from '../constants.js';
+import { MAX_AMOUNT_MINOR, MONTH_PATTERN } from '../constants.js';
 import { isValidDateString } from '../utils/dates.js';
 
 // "Email is required." when missing, "Email must be text." for wrong types.
@@ -18,6 +18,18 @@ export const dateString = text('Date').refine(
   (value) => isValidDateString(value) && value >= '1970-01-01' && value <= '2100-12-31',
   'Enter a real date in YYYY-MM-DD format.',
 );
+
+export const monthString = text('Month').refine(
+  (value) => MONTH_PATTERN.test(value) && value >= '1970-01' && value <= '2100-12',
+  'Enter a month in YYYY-MM format.',
+);
+
+// For objects with optional `from` / `to` dates. "YYYY-MM-DD" strings compare
+// correctly as text.
+export const dateRangeIsOrdered = [
+  (range) => !range.from || !range.to || range.from <= range.to,
+  { message: 'The start date must be on or before the end date.', path: ['to'] },
+];
 
 // Money arrives from the client already converted to whole paise.
 export const amountMinor = z

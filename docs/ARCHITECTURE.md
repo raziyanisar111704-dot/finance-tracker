@@ -194,13 +194,25 @@ finance-tracker/
 - `createdAt`/`updatedAt` remain real timestamps (UTC) for auditing.
 
 ### Definitions (so totals always agree)
-- **Income (month)** = sum of `income` transactions dated in that month.
-- **Expenses (month)** = sum of `expense` transactions dated in that month.
-- **Net savings (month)** = income − expenses. **Savings rate** = net savings ÷ income, shown as "—" when income is 0 (no divide-by-zero).
-- **Balance** = opening balance (setting) + all-time income − all-time expenses.
-- **Savings/Investments categories:** these categories carry `isSavings: true`. Money moved there is still an outflow, but the dashboard shows it as *"saved/invested"* rather than *"spent"*, so it isn't counted as spending and the savings rate isn't understated.
-- **Budget usage** = sum of expenses in *that category* with dates in *that budget's month*, using the same aggregation function the dashboard uses (one source of truth).
-- Empty months return zeros and empty arrays, never errors.
+Implemented in `server/src/services/summary.service.js` → `computeTotals()`:
+
+| Field | Formula |
+|---|---|
+| `incomeMinor` | sum of `income` transactions dated in the period |
+| `expenseMinor` | sum of all `expense` transactions (includes transfers to savings categories) |
+| `savedMinor` | the part of `expenseMinor` in categories with `isSavings: true` (Savings, Investments) |
+| `spendingMinor` | `expenseMinor − savedMinor`: real spending |
+| `netMinor` | `incomeMinor − expenseMinor`: cash left after all outflows |
+| `totalSavingsMinor` | `incomeMinor − spendingMinor`: everything not spent |
+| `savingsRate` | `totalSavingsMinor ÷ incomeMinor` as %, 1 decimal; `null` when income is 0 |
+
+- **Balance** = opening balance (setting) + all income − all expenses dated on or before the balance date. The balance date is today for the current month, and the last day of the month otherwise.
+- **Month-over-month change** = `(current − previous) ÷ previous`, `null` when previous is 0.
+- **Budget usage** = expenses in *that category* dated in *that budget's month*, from the same `sumByCategory()` the dashboard uses.
+  - **warning** at ≥ 80%, checked as `spent × 5 ≥ limit × 4`, so there's no rounding.
+  - **exceeded** at > 100%.
+- **"Today" / "this month"** come from `todayIn(user.timezone)`.
+- **Empty periods** return zeros, empty arrays and `null` percentages, never errors.
 
 ---
 
@@ -356,3 +368,5 @@ GET    /api/health
 6. **No password reset in V1** (no email service). Use a password manager. Email reset is planned for V2.
 7. **Open DB network access (`0.0.0.0/0`).** Mitigated by strong credentials and TLS.
 8. **Offline support** is V2. V1 needs an internet connection, but shows clear retry messages on slow or failed requests.
+9. **Backup size:** a Vercel function response is limited to ~4.5 MB. A JSON backup reaches that at roughly 15,000+ transactions (years of daily use). Before then, add a date-range option or split the backup into parts.
+10. **Currency is a display setting, not a conversion.** Amounts are stored in minor units of the chosen currency. Switching between currencies with different decimal places (e.g. INR with 2 → JPY with 0) would change how stored amounts read. Pick the currency once.
