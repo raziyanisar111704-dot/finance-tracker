@@ -40,6 +40,30 @@ npm audit
 
 See [docs/SECURITY_CHECKLIST.md](docs/SECURITY_CHECKLIST.md) for what is checked and how.
 
+## Deploy (Vercel + Atlas)
+
+Every push to `main` deploys automatically. Production needs these Vercel
+environment variables, set for the **Production** environment only (preview
+deployments of other branches must not write into your real data):
+
+| Name | Value |
+|---|---|
+| `MONGODB_URI` | Atlas connection string for the app's database user |
+| `MONGODB_DB_NAME` | `finance-tracker` |
+| `JWT_SECRET` | 48+ random characters, different from your local one |
+
+Don't set `NODE_ENV` (Vercel sets it to `production`) or `DNS_SERVERS` (local only).
+
+After a deploy, check it from the outside:
+
+```powershell
+npm run check:deploy -- https://your-app.vercel.app
+# Also signs up a throwaway account, uses it and deletes it again:
+npm run check:deploy -- https://your-app.vercel.app --with-account
+```
+
+Atlas's free tier has no automatic backups: download **Settings → Export your data → Download backup (JSON)** regularly.
+
 ## Project layout
 
 | Path | Purpose |
