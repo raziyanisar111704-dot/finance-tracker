@@ -22,7 +22,7 @@ export function BudgetAlerts({ month, isCurrentMonth, currency }) {
         <h2 id="budget-alerts-heading" className="text-base font-semibold">
           Budget alerts
         </h2>
-        <Link to={isCurrentMonth ? '/budgets' : `/budgets?month=${month}`} className={`text-sm ${linkClasses}`}>
+        <Link to={isCurrentMonth ? '/budgets' : `/budgets?month=${month}`} className={`-my-3 inline-flex min-h-11 items-center text-sm ${linkClasses}`}>
           See budgets
         </Link>
       </div>

@@ -12,9 +12,15 @@ const email = text('Email')
   .pipe(z.email('Enter a valid email address.'));
 
 // bcrypt only uses the first 72 bytes of a password, so we cap the length.
+// Characters outside English take 2–4 bytes each (हिंदी, emoji), so 64
+// characters alone could still pass 72 bytes and silently ignore the end.
 const newPassword = text('Password')
   .min(10, 'Password must be at least 10 characters.')
-  .max(64, 'Password must be at most 64 characters.');
+  .max(64, 'Password must be at most 64 characters.')
+  .refine(
+    (password) => new TextEncoder().encode(password).length <= 72,
+    'Password is too long. Use fewer non-English characters or emoji.',
+  );
 
 const name = text('Name')
   .trim()

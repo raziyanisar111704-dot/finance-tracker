@@ -58,7 +58,7 @@ The same code runs unchanged on Render, Koyeb, a VPS or your own PC, so you are 
 | Database | MongoDB Atlas M0 + Mongoose | |
 | Validation | Zod | Same schemas style on server (and optionally client) |
 | Auth | bcryptjs + jsonwebtoken + cookie-parser | `bcryptjs` is pure JS, so there are no native build problems on Windows |
-| Security headers | helmet | |
+| Security headers | helmet (API) + `vercel.json` headers (page) | CSP, no framing, nosniff |
 | CSV | papaparse (client) | Robust parsing of quotes and commas |
 | Testing | Vitest + Supertest + mongodb-memory-server | Tests run against an in-memory MongoDB, not your real data |
 | PWA (Phase 7) | vite-plugin-pwa | |
@@ -287,14 +287,14 @@ RecurringRule { userId, template: {type, amountMinor, categoryId, paymentMethod,
 ## 8. Authentication & privacy
 
 **Sign-up / log-in flow**
-1. Your password is sent over HTTPS, then hashed with **bcrypt (cost 12)**. Only the hash is stored. bcrypt is deliberately slow and salted, so a stolen database can't be reversed quickly.
+1. Your password is sent over HTTPS, then hashed with **bcrypt (cost 12)**. Only the hash is stored. bcrypt is deliberately slow and salted, so a stolen database can't be reversed quickly. bcrypt reads only the first 72 bytes, so new passwords are limited to 72 bytes as well as 64 characters (Hindi letters and emoji take 3–4 bytes each).
 2. On success, the server signs a **JWT** `{ sub: userId, tv: tokenVersion }`, valid 7 days, with a secret from env vars.
 3. The JWT goes into a cookie with these flags:
    - `HttpOnly`: JavaScript can't read it, so an XSS bug can't steal it (unlike `localStorage`).
    - `Secure`: sent only over HTTPS (in production).
    - `SameSite=Lax`: not sent on cross-site form posts, which blocks most CSRF attacks.
    - `Path=/`.
-4. As an extra CSRF guard, state-changing requests must be `Content-Type: application/json`, which a plain HTML form on another site cannot send.
+4. As an extra CSRF guard, every POST/PUT/PATCH/DELETE with an `Origin` header from another site is refused with 403 (`sameOriginOnly` middleware). Bodies must also be JSON, which a plain HTML form on another site cannot send.
 5. "Log out everywhere" increments `tokenVersion`, which invalidates every old token.
 
 **Authorization (keeping each user's data private)**
@@ -304,8 +304,10 @@ RecurringRule { userId, template: {type, amountMinor, categoryId, paymentMethod,
 
 **Other protections**
 - Zod validation on every body and query. Unknown fields are stripped; values that aren't strings are rejected, which blocks NoSQL injection such as `{ "$gt": "" }`.
-- Rate limits: login 5 attempts / 15 min per IP + email; register 5 / hour per IP. The response is the same for "wrong email" and "wrong password".
-- `helmet` security headers; JSON body limit 1 MB.
+- Rate limits (stored in MongoDB, so all serverless instances share them): login 10 attempts / 15 min per IP and per email; register 5 / hour per IP; delete account 5 / 15 min per user. The response is the same for "wrong email" and "wrong password".
+  - Trade-off: the per-email limit means someone who knows your email can block logins to it for up to 15 minutes. Accepted, because it is what stops password guessing spread across many computers.
+- `helmet` security headers on the API; JSON body limit 1 MB; `Cache-Control: no-store` on every API response.
+- The page itself gets headers from `vercel.json`: a Content Security Policy that allows only this site's own scripts, styles and connections (an injected `<script>` is refused), `frame-ancestors 'none'` + `X-Frame-Options: DENY` (no clickjacking), `nosniff`, `Referrer-Policy: same-origin`. For this, the theme script lives in `client/public/theme.js` instead of inline in `index.html`.
 - Central error handler: logs details server-side and sends users a generic message (no stack traces).
 - Secrets only in env vars (`.env` is gitignored; `.env.example` is committed).
 - Atlas: a dedicated DB user with `readWrite` on **only** the app database, plus a long random password, with TLS enforced.

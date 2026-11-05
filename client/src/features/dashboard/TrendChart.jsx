@@ -51,7 +51,9 @@ function Legend({ month, currency }) {
   );
 }
 
-function TrendTable({ months, currency }) {
+// Each month opens like a column does. On a phone the columns of a 12-month
+// chart are narrower than a fingertip, so this is the easy way to pick one.
+function TrendTable({ months, currency, onSelectMonth }) {
   return (
     <div className="overflow-x-auto">
       <table className="tabular w-full text-sm">
@@ -66,7 +68,15 @@ function TrendTable({ months, currency }) {
         <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
           {months.map((m) => (
             <tr key={m.month}>
-              <th scope="row" className="whitespace-nowrap py-2 pr-4 text-left font-medium">{formatMonth(m.month)}</th>
+              <th scope="row" className="whitespace-nowrap py-1 pr-4 text-left font-medium">
+                <button
+                  type="button"
+                  onClick={() => onSelectMonth(m.month)}
+                  className="-mx-1 min-h-9 rounded-md px-1 text-teal-700 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-teal-600 dark:text-teal-400"
+                >
+                  {formatMonth(m.month)}
+                </button>
+              </th>
               <td className="whitespace-nowrap py-2 pr-4 text-right">{formatMoney(m.incomeMinor, currency)}</td>
               <td className="whitespace-nowrap py-2 pr-4 text-right">{formatMoney(m.spendingMinor, currency)}</td>
               <td className="whitespace-nowrap py-2 text-right">
@@ -163,7 +173,7 @@ export function TrendChart({ months, currency, selectedMonth, onSelectMonth }) {
       </div>
 
       {view === 'table' ? (
-        <TrendTable months={months} currency={currency} />
+        <TrendTable months={months} currency={currency} onSelectMonth={onSelectMonth} />
       ) : (
         <div ref={ref} className="relative" style={{ height: TOP + PLOT_HEIGHT + X_AXIS }}>
           {width > 0 && (

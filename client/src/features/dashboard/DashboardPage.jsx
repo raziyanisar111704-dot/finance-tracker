@@ -258,7 +258,7 @@ export default function DashboardPage() {
             <h2 className="text-base font-semibold">
               {isCurrentMonth ? 'Recent transactions' : `Latest up to ${formatDate(data.to)}`}
             </h2>
-            <Link to="/transactions" className={`text-sm ${linkClasses}`}>
+            <Link to="/transactions" className={`-my-3 inline-flex min-h-11 items-center text-sm ${linkClasses}`}>
               View all
             </Link>
           </div>

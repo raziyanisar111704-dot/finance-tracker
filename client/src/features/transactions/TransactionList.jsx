@@ -76,13 +76,17 @@ const iconButton =
 
 function DesktopTable({ items, byId, currency, onEdit, onDelete }) {
   return (
+    // Fits the space between the sidebar and the edge at every width: notes
+    // take whatever is left and truncate (max-w-0 + w-full is how a table
+    // cell truncates), category names wrap, and the payment method gets its
+    // own column only from 1280px (before that it sits under the category).
     <table className="hidden w-full text-sm md:table">
       <thead>
         <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
           <th scope="col" className="px-4 py-3 font-semibold">Date</th>
           <th scope="col" className="px-4 py-3 font-semibold">Category</th>
           <th scope="col" className="px-4 py-3 font-semibold">Notes</th>
-          <th scope="col" className="px-4 py-3 font-semibold">Method</th>
+          <th scope="col" className="hidden px-4 py-3 font-semibold xl:table-cell">Method</th>
           <th scope="col" className="px-4 py-3 text-right font-semibold">Amount</th>
           <th scope="col" className="px-4 py-3">
             <span className="sr-only">Actions</span>
@@ -99,18 +103,25 @@ function DesktopTable({ items, byId, currency, onEdit, onDelete }) {
                 {formatDate(transaction.date)}
               </td>
               <td className="px-4 py-3">
-                <span className="flex items-center gap-3">
+                <span className="flex min-w-40 items-center gap-3">
                   <CategoryIcon category={category} className="size-8" />
-                  <span className="font-medium">{categoryName(category)}</span>
+                  <span>
+                    <span className="block font-medium">{categoryName(category)}</span>
+                    <span className="block text-xs text-slate-500 xl:hidden dark:text-slate-400">
+                      {PAYMENT_METHOD_LABELS[transaction.paymentMethod]}
+                    </span>
+                  </span>
                 </span>
               </td>
-              <td className="max-w-xs truncate px-4 py-3 text-slate-600 dark:text-slate-300" title={transaction.notes}>
-                {transaction.notes || <span className="text-slate-400 dark:text-slate-500">—</span>}
+              <td className="w-full max-w-0 px-4 py-3 text-slate-600 dark:text-slate-300" title={transaction.notes}>
+                <span className="block truncate">
+                  {transaction.notes || <span className="text-slate-400 dark:text-slate-500">—</span>}
+                </span>
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-600 dark:text-slate-300">
+              <td className="hidden whitespace-nowrap px-4 py-3 text-slate-600 xl:table-cell dark:text-slate-300">
                 {PAYMENT_METHOD_LABELS[transaction.paymentMethod]}
               </td>
-              <td className="px-4 py-3 text-right">
+              <td className="whitespace-nowrap px-4 py-3 text-right">
                 <Amount transaction={transaction} currency={currency} />
               </td>
               <td className="whitespace-nowrap px-2 py-2 text-right">

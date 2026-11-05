@@ -27,6 +27,19 @@ npm run dev:client
 
 To test on your phone over the same Wi-Fi, run `npm run dev:client -- --host`. Then open the "Network" URL that Vite prints.
 
+## Tests
+
+```powershell
+# All automated tests (client calculations + API), from the project root.
+# The API tests use a throwaway in-memory MongoDB, never your Atlas data.
+npm test
+
+# Known vulnerabilities in dependencies
+npm audit
+```
+
+See [docs/SECURITY_CHECKLIST.md](docs/SECURITY_CHECKLIST.md) for what is checked and how.
+
 ## Project layout
 
 | Path | Purpose |

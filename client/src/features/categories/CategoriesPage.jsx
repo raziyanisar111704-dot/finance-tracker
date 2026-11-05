@@ -138,7 +138,7 @@ export default function CategoriesPage() {
 
   return (
     <>
-      <Link to="/settings" className={`mb-3 inline-flex items-center gap-1 text-sm ${linkClasses}`}>
+      <Link to="/settings" className={`-ml-1 mb-1 inline-flex min-h-11 items-center gap-1 pr-2 text-sm ${linkClasses}`}>
         <ChevronLeft className="size-4" aria-hidden="true" />
         Settings
       </Link>
