@@ -61,6 +61,24 @@ const formatters = {
 // "2026-11-04" → "4 Nov 2026"
 export const formatDate = (dateString) => formatters.short.format(toUtcDate(dateString));
 
+// "2026-11" + 1 → "2026-12", "2026-01" - 1 → "2025-12"
+export function addMonths(month, count) {
+  const [year, monthIndex] = month.split('-').map(Number);
+  return new Date(Date.UTC(year, monthIndex - 1 + count, 1)).toISOString().slice(0, 7);
+}
+
+const monthFormatters = {
+  long: new Intl.DateTimeFormat('en-GB', { timeZone: 'UTC', month: 'long', year: 'numeric' }),
+  name: new Intl.DateTimeFormat('en-GB', { timeZone: 'UTC', month: 'long' }),
+  // en-US: "Sep" (en-GB says "Sept").
+  short: new Intl.DateTimeFormat('en-US', { timeZone: 'UTC', month: 'short' }),
+};
+
+// "2026-11" → "November 2026" / "November" / "Nov"
+export const formatMonth = (month) => monthFormatters.long.format(toUtcDate(`${month}-01`));
+export const formatMonthName = (month) => monthFormatters.name.format(toUtcDate(`${month}-01`));
+export const formatMonthShort = (month) => monthFormatters.short.format(toUtcDate(`${month}-01`));
+
 // Heading for a day in a list: "Today", "Yesterday" or "Mon, 2 Nov 2026".
 export function formatDayHeading(dateString, today) {
   if (dateString === today) return 'Today';

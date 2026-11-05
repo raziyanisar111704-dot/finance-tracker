@@ -4,11 +4,22 @@
    so the user can choose light, dark or follow the device. */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Chart colours. Income and spending keep the same colour on every chart.
+   Each mode has its own validated steps (colour-blind separation ΔE ≥ 24,
+   ≥ 3:1 contrast against the white / slate-900 cards). */
 :root {
   color-scheme: light;
+  --viz-income: #2a78d6;
+  --viz-spending: #eb6834;
+  --viz-grid: #e2e8f0;
+  --viz-axis: #cbd5e1;
 }
 :root.dark {
   color-scheme: dark;
+  --viz-income: #3987e5;
+  --viz-spending: #d95926;
+  --viz-grid: #1e293b;
+  --viz-axis: #334155;
 }
 
 body {

@@ -68,6 +68,25 @@ export function parseAmount(input, currency) {
   return { minor };
 }
 
+// 25000000 → "₹2.5L" (INR uses lakh / crore). For chart axis labels only:
+// it rounds, so it must never be used where the exact amount matters.
+export function formatMoneyCompact(amountMinor, currency) {
+  const key = `${currency}|compact`;
+  if (!formatters.has(key)) {
+    const locale = currency === 'INR' ? 'en-IN' : undefined;
+    formatters.set(
+      key,
+      new Intl.NumberFormat(locale, { style: 'currency', currency, notation: 'compact', maximumFractionDigits: 1 }),
+    );
+  }
+  return formatters.get(key).format(minorToDecimalString(amountMinor, currency));
+}
+
+// Share of a whole as a whole-number percent: (2500, 10000) → 25. null if whole is 0.
+export function sharePercent(part, whole) {
+  return whole === 0 ? null : Math.round((part * 100) / whole);
+}
+
 // "INR" → "₹"
 export function currencySymbol(currency) {
   return (

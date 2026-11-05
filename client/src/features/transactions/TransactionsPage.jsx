@@ -1,10 +1,9 @@
 import { ChevronLeft, ChevronRight, Plus, Receipt, SearchX } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useSearchParams } from 'react-router';
 import { Alert } from '../../components/ui/Alert.jsx';
 import { Button } from '../../components/ui/Button.jsx';
 import { Card } from '../../components/ui/Card.jsx';
-import { ConfirmDialog } from '../../components/ui/ConfirmDialog.jsx';
 import { EmptyState } from '../../components/ui/EmptyState.jsx';
 import { PageHeader } from '../../components/ui/PageHeader.jsx';
 import { Spinner } from '../../components/ui/Spinner.jsx';
@@ -14,9 +13,9 @@ import { formatMoney } from '../../lib/money.js';
 import { useMe } from '../auth/useAuth.js';
 import { useCategories } from '../categories/useCategories.js';
 import { countActiveFilters, TransactionFilters } from './TransactionFilters.jsx';
-import { TransactionFormDialog } from './TransactionFormDialog.jsx';
 import { TransactionList } from './TransactionList.jsx';
-import { useDeleteTransaction, useTransactions } from './useTransactions.js';
+import { AddTransactionFab, useTransactionDialogs } from './useTransactionDialogs.jsx';
+import { useTransactions } from './useTransactions.js';
 
 const PAGE_SIZE = 20;
 const FILTER_KEYS = ['q', 'type', 'categoryId', 'paymentMethod', 'from', 'to'];
@@ -58,11 +57,7 @@ export default function TransactionsPage() {
   const today = todayIn(user.timezone);
 
   const list = useTransactions({ ...filters, page, limit: PAGE_SIZE });
-  const remove = useDeleteTransaction();
-
-  // formTransaction: undefined = closed, null = adding, object = editing.
-  const [formTransaction, setFormTransaction] = useState(undefined);
-  const [deleting, setDeleting] = useState(null);
+  const { openAdd, openEdit, openDelete, dialogs } = useTransactionDialogs();
 
   function setUrl(patch) {
     setParams(
@@ -93,20 +88,10 @@ export default function TransactionsPage() {
     if (totalPages && page > totalPages) setUrl({ page: totalPages > 1 ? totalPages : '' });
   }, [page, totalPages]);
 
-  function openDelete(transaction) {
-    setFormTransaction(undefined);
-    remove.reset();
-    setDeleting(transaction);
-  }
-
-  function confirmDelete() {
-    remove.mutate(deleting.id, { onSuccess: () => setDeleting(null) });
-  }
-
   const hasFilters = countActiveFilters(filters) > 0 || Boolean(filters.q);
   const data = list.data;
   const addButton = (
-    <Button onClick={() => setFormTransaction(null)}>
+    <Button onClick={openAdd}>
       <Plus className="size-4" aria-hidden="true" />
       Add transaction
     </Button>
@@ -161,7 +146,7 @@ export default function TransactionsPage() {
         byId={byId}
         currency={user.currency}
         today={today}
-        onEdit={setFormTransaction}
+        onEdit={openEdit}
         onDelete={openDelete}
       />
     );
@@ -235,44 +220,8 @@ export default function TransactionsPage() {
         )}
       </div>
 
-      {/* Phones and tablets: a round "+" button within thumb reach, above the
-          bottom bar. The spacer stops it from covering the last row. */}
-      <div className="h-12 lg:hidden" aria-hidden="true" />
-      <button
-        type="button"
-        onClick={() => setFormTransaction(null)}
-        aria-label="Add transaction"
-        className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] right-4 z-20 inline-flex size-14 items-center justify-center rounded-full bg-teal-700 text-white shadow-lg hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 lg:hidden dark:bg-teal-600 dark:hover:bg-teal-500"
-      >
-        <Plus className="size-6" aria-hidden="true" />
-      </button>
-
-      <TransactionFormDialog
-        open={formTransaction !== undefined}
-        transaction={formTransaction ?? null}
-        onClose={() => setFormTransaction(undefined)}
-        onDelete={openDelete}
-      />
-
-      <ConfirmDialog
-        open={deleting !== null}
-        onClose={() => setDeleting(null)}
-        onConfirm={confirmDelete}
-        title="Delete transaction?"
-        pending={remove.isPending}
-        error={remove.error}
-      >
-        {deleting && (
-          <p>
-            This removes the {deleting.type} of{' '}
-            <strong className="text-slate-900 dark:text-slate-100">
-              {formatMoney(deleting.amountMinor, user.currency)}
-            </strong>{' '}
-            ({byId.get(deleting.categoryId)?.name ?? 'Unknown category'}, {formatDate(deleting.date)}). This can't be
-            undone.
-          </p>
-        )}
-      </ConfirmDialog>
+      <AddTransactionFab onClick={openAdd} />
+      {dialogs}
     </>
   );
 }

@@ -33,9 +33,9 @@ function groupByDate(items) {
   return groups;
 }
 
-function MobileList({ items, byId, currency, today, onEdit }) {
+function MobileList({ items, byId, currency, today, onEdit, className }) {
   return (
-    <div className="divide-y divide-slate-200 md:hidden dark:divide-slate-800">
+    <div className={`divide-y divide-slate-200 dark:divide-slate-800 ${className}`}>
       {groupByDate(items).map((group) => (
         <section key={group.date} aria-label={formatDayHeading(group.date, today)}>
           <h3 className="bg-slate-50 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-950/40 dark:text-slate-400">
@@ -134,10 +134,13 @@ function DesktopTable({ items, byId, currency, onEdit, onDelete }) {
   );
 }
 
-export function TransactionList(props) {
+// layout="responsive": cards on phones, a table from tablet width up.
+// layout="list": cards at every size (e.g. the dashboard's recent list).
+export function TransactionList({ layout = 'responsive', ...props }) {
+  if (layout === 'list') return <MobileList {...props} className="" />;
   return (
     <>
-      <MobileList {...props} />
+      <MobileList {...props} className="md:hidden" />
       <DesktopTable {...props} />
     </>
   );
