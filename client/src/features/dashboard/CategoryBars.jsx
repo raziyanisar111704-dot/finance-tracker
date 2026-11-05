@@ -3,15 +3,14 @@ import { Link } from 'react-router';
 import { formatMoney, sharePercent } from '../../lib/money.js';
 import { CategoryIcon } from '../categories/CategoryIcon.jsx';
 
-const MAX_ROWS = 6;
-
-// Ranked horizontal bars, largest first, all in the spending colour (the
-// category is named next to each bar, so colour doesn't need to tell them
-// apart). Bars are easier to compare than slices of a pie.
+// Ranked horizontal bars, largest first, all in one colour (the category is
+// named next to each bar, so colour doesn't need to tell them apart). Bars
+// are easier to compare than slices of a pie.
 // rows: [{ categoryId, name, icon, color, totalMinor }] sorted largest first.
-export function CategoryBars({ rows, totalMinor, currency, from, to }) {
-  // Past six categories, the rest fold into one "N more" row.
-  const shown = rows.length > MAX_ROWS ? rows.slice(0, MAX_ROWS - 1) : rows;
+// type: 'expense' (spending colour) or 'income' (income colour).
+export function CategoryBars({ rows, totalMinor, currency, from, to, type = 'expense', maxRows = 6 }) {
+  // Past `maxRows` categories, the rest fold into one "N more" row.
+  const shown = rows.length > maxRows ? rows.slice(0, maxRows - 1) : rows;
   const rest = rows.slice(shown.length);
   const restTotal = rest.reduce((sum, row) => sum + row.totalMinor, 0);
   const largest = Math.max(shown[0]?.totalMinor ?? 0, restTotal);
@@ -29,7 +28,7 @@ export function CategoryBars({ rows, totalMinor, currency, from, to }) {
       label: `${rest.length} more categories`,
       category: null,
       totalMinor: restTotal,
-      to: `/transactions?type=expense&from=${from}&to=${to}`,
+      to: `/transactions?type=${type}&from=${from}&to=${to}`,
     });
   }
 
@@ -61,7 +60,7 @@ export function CategoryBars({ rows, totalMinor, currency, from, to }) {
                     className="h-full min-w-0.5 rounded-r-sm"
                     style={{
                       width: `${(item.totalMinor / largest) * 100}%`,
-                      backgroundColor: 'var(--viz-spending)',
+                      backgroundColor: type === 'income' ? 'var(--viz-income)' : 'var(--viz-spending)',
                     }}
                   />
                 </div>

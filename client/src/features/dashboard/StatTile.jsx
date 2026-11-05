@@ -31,6 +31,7 @@ export function Delta({ direction, goodWhenUp, text }) {
 }
 
 // label · value · optional change line · optional note.
+// Reports pass no delta (no comparison), so no empty line is reserved.
 // Big numbers use normal (proportional) digits: tabular digits look loose at this size.
 export function StatTile({ label, value, delta, note, swatch }) {
   return (
@@ -41,7 +42,7 @@ export function StatTile({ label, value, delta, note, swatch }) {
         {label}
       </p>
       <p className="mt-1 truncate text-2xl font-semibold tracking-tight">{value}</p>
-      <div className="mt-1.5 min-h-5">{delta}</div>
+      {delta && <div className="mt-1.5 min-h-5">{delta}</div>}
       {note && <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{note}</p>}
     </div>
   );

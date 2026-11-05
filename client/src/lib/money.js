@@ -68,6 +68,19 @@ export function parseAmount(input, currency) {
   return { minor };
 }
 
+// Like parseAmount, but for values that may be zero or negative, such as an
+// opening balance (an overdrawn account or a loan starts below zero).
+// Empty means zero.
+export function parseSignedAmount(input, currency) {
+  const text = String(input ?? '').trim();
+  const negative = text.startsWith('-');
+  const rest = negative ? text.slice(1).trim() : text;
+  if (/^0*(\.0*)?$/.test(rest)) return { minor: 0 };
+  const result = parseAmount(rest, currency);
+  if (result.error) return result;
+  return { minor: negative ? -result.minor : result.minor };
+}
+
 // 25000000 → "₹2.5L" (INR uses lakh / crore). For chart axis labels only:
 // it rounds, so it must never be used where the exact amount matters.
 export function formatMoneyCompact(amountMinor, currency) {

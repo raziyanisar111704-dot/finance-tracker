@@ -20,3 +20,10 @@ export const register = (account) =>
 export const logout = () => api('/auth/logout', { method: 'POST' });
 
 export const logoutAllDevices = () => api('/auth/logout-all', { method: 'POST' });
+
+// changes: any of { name, currency, timezone, openingBalanceMinor }
+export const updateMe = (changes) =>
+  api('/auth/me', { method: 'PATCH', body: changes }).then((data) => data.user);
+
+// Deletes the account and every transaction, budget and category in it.
+export const deleteAccount = (password) => api('/auth/me', { method: 'DELETE', body: { password } });

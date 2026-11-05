@@ -185,7 +185,7 @@ function TransactionForm({ transaction, onDone, onDelete }) {
               error={errors.categoryId}
               hint={
                 !categoriesLoading && categoryOptions.length === 0
-                  ? `You have no ${form.type} categories. You can add them in step 4.4.`
+                  ? `You have no ${form.type} categories. Add one in Settings → Categories.`
                   : undefined
               }
             >

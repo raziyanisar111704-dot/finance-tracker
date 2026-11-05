@@ -111,8 +111,8 @@ function Tooltip({ month, currency, left }) {
   );
 }
 
-// Income vs spending per month, ending with the selected month.
-// onSelectMonth(month): clicking a month opens it on the dashboard.
+// Income vs spending per month. selectedMonth (optional) is highlighted.
+// onSelectMonth(month): clicking a month opens that month.
 export function TrendChart({ months, currency, selectedMonth, onSelectMonth }) {
   const [ref, width] = useElementWidth();
   const [active, setActive] = useState(null);
@@ -127,6 +127,13 @@ export function TrendChart({ months, currency, selectedMonth, onSelectMonth }) {
   const band = plotWidth / months.length;
   const barWidth = Math.max(2, Math.min(MAX_BAR, (band * 0.6 - GAP) / 2));
   const y = (value) => TOP + PLOT_HEIGHT - (value / yMax) * PLOT_HEIGHT;
+
+  // Long ranges (reports): label every 2nd, 3rd… month so labels never
+  // overlap, counted back from the latest month. Ranges that cross a year
+  // say which year: "Jan ’26".
+  const multiYear = months[0].month.slice(0, 4) !== months.at(-1).month.slice(0, 4);
+  const labelEvery = Math.max(1, Math.ceil((months.length * (multiYear ? 52 : 34)) / Math.max(1, plotWidth)));
+  const monthLabel = (month) => (multiYear ? `${formatMonthShort(month)} ’${month.slice(2, 4)}` : formatMonthShort(month));
 
   const toggle = (
     <div className="flex rounded-lg bg-slate-100 p-0.5 dark:bg-slate-800" role="group" aria-label="View">
@@ -208,18 +215,20 @@ export function TrendChart({ months, currency, selectedMonth, onSelectMonth }) {
                           />
                         );
                       })}
-                      <text
-                        x={center}
-                        y={TOP + PLOT_HEIGHT + 18}
-                        textAnchor="middle"
-                        className={`text-[11px] ${
-                          m.month === selectedMonth
-                            ? 'fill-slate-900 font-semibold dark:fill-slate-100'
-                            : 'fill-slate-500 dark:fill-slate-400'
-                        }`}
-                      >
-                        {formatMonthShort(m.month)}
-                      </text>
+                      {(months.length - 1 - i) % labelEvery === 0 && (
+                        <text
+                          x={center}
+                          y={TOP + PLOT_HEIGHT + 18}
+                          textAnchor="middle"
+                          className={`text-[11px] ${
+                            m.month === selectedMonth
+                              ? 'fill-slate-900 font-semibold dark:fill-slate-100'
+                              : 'fill-slate-500 dark:fill-slate-400'
+                          }`}
+                        >
+                          {monthLabel(m.month)}
+                        </text>
+                      )}
                     </g>
                   );
                 })}

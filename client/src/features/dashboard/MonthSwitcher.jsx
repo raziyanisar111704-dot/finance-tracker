@@ -6,7 +6,8 @@ const arrowClasses =
   'inline-flex size-11 items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-teal-600 disabled:cursor-not-allowed disabled:opacity-40 dark:text-slate-300 dark:hover:bg-slate-800';
 
 // ◀ November 2026 ▶ — the one filter on the dashboard; everything below follows it.
-export function MonthSwitcher({ month, currentMonth, onChange }) {
+// maxMonth: the latest month allowed (budgets can be planned a month ahead).
+export function MonthSwitcher({ month, currentMonth, maxMonth = currentMonth, onChange }) {
   const isCurrent = month === currentMonth;
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -25,7 +26,7 @@ export function MonthSwitcher({ month, currentMonth, onChange }) {
         <button
           type="button"
           onClick={() => onChange(addMonths(month, 1))}
-          disabled={month >= currentMonth}
+          disabled={month >= maxMonth}
           aria-label={`Next month, ${formatMonth(addMonths(month, 1))}`}
           className={arrowClasses}
         >

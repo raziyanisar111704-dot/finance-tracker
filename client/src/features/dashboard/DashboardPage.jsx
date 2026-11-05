@@ -14,6 +14,7 @@ import { useMe } from '../auth/useAuth.js';
 import { useCategories } from '../categories/useCategories.js';
 import { TransactionList } from '../transactions/TransactionList.jsx';
 import { AddTransactionFab, useTransactionDialogs } from '../transactions/useTransactionDialogs.jsx';
+import { BudgetAlerts } from './BudgetAlerts.jsx';
 import { CategoryBars } from './CategoryBars.jsx';
 import { MonthSwitcher } from './MonthSwitcher.jsx';
 import { Delta, StatTile } from './StatTile.jsx';
@@ -205,6 +206,8 @@ export default function DashboardPage() {
             />
           </div>
         </section>
+
+        <BudgetAlerts month={month} isCurrentMonth={isCurrentMonth} currency={currency} />
 
         <div className="grid gap-6 lg:grid-cols-5">
           <Card className="lg:col-span-3">

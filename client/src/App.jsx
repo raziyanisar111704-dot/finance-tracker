@@ -4,6 +4,7 @@ import LoginPage from './features/auth/LoginPage.jsx';
 import RegisterPage from './features/auth/RegisterPage.jsx';
 import { GuestOnly, RequireAuth } from './features/auth/RouteGuards.jsx';
 import BudgetsPage from './features/budgets/BudgetsPage.jsx';
+import CategoriesPage from './features/categories/CategoriesPage.jsx';
 import DashboardPage from './features/dashboard/DashboardPage.jsx';
 import NotFoundPage from './features/NotFoundPage.jsx';
 import ReportsPage from './features/reports/ReportsPage.jsx';
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/budgets" element={<BudgetsPage />} />
           <Route path="/reports" element={<ReportsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/settings/categories" element={<CategoriesPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Route>
