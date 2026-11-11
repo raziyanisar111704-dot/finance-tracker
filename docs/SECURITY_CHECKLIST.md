@@ -47,6 +47,7 @@ checked by hand on the live site (see the end of this file).
 | CSV export can't run spreadsheet formulas (`=HYPERLINK(…)` is neutralised) | auto: `utils.test.js`, `export.test.js` |
 | Errors never reveal internal details; broken / oversized bodies get clear 400 / 413 | auto: `security.test.js` |
 | API responses are never cached (`Cache-Control: no-store`) | auto: `security.test.js` |
+| The service worker (installed app) stores only the app's own files, never `/api` responses, so no financial data stays on the device | `client/public/sw.js` skips `/api/`; browser check (Phase 7.1), also after log out |
 | Page has a Content Security Policy (only this site's scripts) and can't be framed | browser check against the production build; **manual** on the live site |
 | No `dangerouslySetInnerHTML` / `eval` in the client; React escapes all user text | code review |
 | Dependencies have no known vulnerabilities | `npm audit` (0 found on 5 Nov 2026) |

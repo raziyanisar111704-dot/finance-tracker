@@ -1,4 +1,4 @@
-import { ChevronRight, DatabaseBackup, Download, LogOut, Tags, Trash } from 'lucide-react';
+import { ChevronRight, DatabaseBackup, Download, LogOut, Share, Smartphone, Tags, Trash } from 'lucide-react';
 import { useId, useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { downloadBackup, downloadTransactionsCsv } from '../../api/export.js';
@@ -13,6 +13,7 @@ import { TextField } from '../../components/ui/TextField.jsx';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.js';
 import { fieldErrors } from '../../lib/errors.js';
 import { currencySymbol, minorToInputString, parseSignedAmount } from '../../lib/money.js';
+import { isIos, useInstallPrompt } from '../../lib/pwa.js';
 import { useDeleteAccount, useLogout, useLogoutAllDevices, useMe, useUpdateMe } from '../auth/useAuth.js';
 import { THEME_OPTIONS } from '../theme/ThemeToggle.jsx';
 import { useTheme } from '../theme/ThemeProvider.jsx';
@@ -198,6 +199,39 @@ function ProfileForm({ user }) {
   );
 }
 
+// Hidden when the app is already running installed.
+function InstallCard() {
+  const { canInstall, installed, install } = useInstallPrompt();
+  if (installed) return null;
+
+  return (
+    <Card>
+      <CardTitle description="Open it from your home screen like any other app, full screen and quicker to start.">
+        Install the app
+      </CardTitle>
+      {canInstall ? (
+        <Button onClick={install}>
+          <Smartphone className="size-4" aria-hidden="true" />
+          Install app
+        </Button>
+      ) : isIos() ? (
+        <ol className="list-decimal space-y-1 pl-5 text-sm text-slate-600 dark:text-slate-300">
+          <li>Open this page in Safari.</li>
+          <li>
+            Tap <Share className="inline size-4 align-text-bottom" aria-hidden="true" /> Share.
+          </li>
+          <li>Choose “Add to Home Screen”, then “Add”.</li>
+        </ol>
+      ) : (
+        <p className="text-sm text-slate-600 dark:text-slate-300">
+          Open your browser's menu (⋮) and choose “Install app” or “Add to Home screen”. Chrome, Edge and Samsung
+          Internet support it.
+        </p>
+      )}
+    </Card>
+  );
+}
+
 function DownloadButton({ label, icon: Icon, download }) {
   const [state, setState] = useState({ pending: false, error: null, name: null });
   async function handleClick() {
@@ -297,6 +331,10 @@ export default function SettingsPage() {
   return (
     <>
       <PageHeader title="Settings" />
+      {/* First, so phones see it without scrolling past the account form. */}
+      <div className="mb-6 empty:hidden">
+        <InstallCard />
+      </div>
       <div className="grid items-start gap-6 lg:grid-cols-2">
         <Card>
           <CardTitle>Account</CardTitle>

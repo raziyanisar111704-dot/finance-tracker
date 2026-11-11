@@ -82,6 +82,14 @@ export default function TransactionsPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  // The installed app's "Add transaction" shortcut opens /transactions?add=1.
+  const addRequested = params.get('add') === '1';
+  useEffect(() => {
+    if (!addRequested) return;
+    setUrl({ add: '' });
+    openAdd();
+  }, [addRequested]);
+
   // Deleting the last item on the last page leaves an empty page: step back.
   const totalPages = list.data?.totalPages;
   useEffect(() => {

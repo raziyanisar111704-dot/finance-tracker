@@ -77,6 +77,20 @@ async function readOnlyChecks() {
   check(theme.status === 200 && (theme.headers.get('content-type') ?? '').includes('javascript'),
     'theme.js is served as a script, not as the page', `${theme.status} ${theme.headers.get('content-type')}`);
 
+  // Installable app (PWA)
+  const manifestRes = await get('/manifest.webmanifest');
+  const manifest = await manifestRes.json().catch(() => null);
+  check(manifestRes.status === 200 && manifest?.name === 'Finance Tracker' && manifest?.display === 'standalone',
+    'App manifest is served', `status ${manifestRes.status}`);
+  for (const icon of manifest?.icons ?? []) {
+    const res = await get(icon.src);
+    check(res.status === 200 && res.headers.get('content-type') === 'image/png', `Icon ${icon.src} downloads`, `status ${res.status}`);
+  }
+  const sw = await get('/sw.js');
+  const swCache = sw.headers.get('cache-control') ?? '';
+  check(sw.status === 200 && (sw.headers.get('content-type') ?? '').includes('javascript') && swCache.includes('no-cache'),
+    'Service worker is served and never cached (updates reach phones)', `${sw.status} ${sw.headers.get('content-type')} cache-control=${swCache}`);
+
   const script = /<script[^>]+src="(\/assets\/[^"]+\.js)"/.exec(html)?.[1];
   if (script) {
     const asset = await get(script);

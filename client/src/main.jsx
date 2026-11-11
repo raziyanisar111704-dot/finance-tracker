@@ -5,7 +5,10 @@ import { BrowserRouter } from 'react-router';
 import App from './App.jsx';
 import { ThemeProvider } from './features/theme/ThemeProvider.jsx';
 import './index.css';
+import { setUpPwa } from './lib/pwa.js';
 import { queryClient } from './lib/queryClient.js';
+
+setUpPwa();
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

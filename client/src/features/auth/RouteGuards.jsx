@@ -5,10 +5,10 @@ import { useMe } from './useAuth.js';
 // Pages inside the app: only for logged-in users. Others go to /login, which
 // remembers the page they wanted and returns there after logging in.
 export function RequireAuth() {
-  const { data: user, isPending, error, refetch } = useMe();
+  const { data: user, isPending, fetchStatus, error, refetch } = useMe();
   const location = useLocation();
 
-  if (isPending) return <FullPageStatus />;
+  if (isPending) return <FullPageStatus paused={fetchStatus === 'paused'} />;
   if (error) return <FullPageStatus error={error} onRetry={refetch} />;
   if (!user) return <Navigate to="/login" replace state={{ from: location }} />;
   return <Outlet />;
@@ -16,10 +16,10 @@ export function RequireAuth() {
 
 // Login / register pages: logged-in users are sent into the app instead.
 export function GuestOnly() {
-  const { data: user, isPending, error, refetch } = useMe();
+  const { data: user, isPending, fetchStatus, error, refetch } = useMe();
   const location = useLocation();
 
-  if (isPending) return <FullPageStatus />;
+  if (isPending) return <FullPageStatus paused={fetchStatus === 'paused'} />;
   if (error) return <FullPageStatus error={error} onRetry={refetch} />;
   if (user) return <Navigate to={location.state?.from?.pathname ?? '/'} replace />;
   return <Outlet />;

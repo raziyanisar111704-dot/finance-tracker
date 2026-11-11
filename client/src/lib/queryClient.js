@@ -1,7 +1,13 @@
-import { QueryCache, QueryClient } from '@tanstack/react-query';
+import { onlineManager, QueryCache, QueryClient } from '@tanstack/react-query';
 import { ApiError } from '../api/client.js';
 
 export const ME_KEY = ['me'];
+
+// React Query assumes it starts online and only learns otherwise from a later
+// "offline" event. The installed app can start with no connection, so tell it
+// the truth: then requests wait (paused) and run by themselves on reconnect,
+// instead of failing.
+onlineManager.setOnline(navigator.onLine);
 
 export const queryClient = new QueryClient({
   queryCache: new QueryCache({
