@@ -1,8 +1,8 @@
-import { ChevronLeft, ChevronRight, Plus, Receipt, SearchX } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FileUp, Plus, Receipt, SearchX } from 'lucide-react';
 import { useEffect } from 'react';
-import { useSearchParams } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import { Alert } from '../../components/ui/Alert.jsx';
-import { Button } from '../../components/ui/Button.jsx';
+import { Button, buttonClasses } from '../../components/ui/Button.jsx';
 import { Card } from '../../components/ui/Card.jsx';
 import { EmptyState } from '../../components/ui/EmptyState.jsx';
 import { PageHeader } from '../../components/ui/PageHeader.jsx';
@@ -104,6 +104,12 @@ export default function TransactionsPage() {
       Add transaction
     </Button>
   );
+  const importLink = (
+    <Link to="/transactions/import" className={buttonClasses({ variant: 'secondary' })}>
+      <FileUp className="size-4" aria-hidden="true" />
+      Import CSV
+    </Link>
+  );
 
   let content;
   if (list.isPending) {
@@ -144,7 +150,12 @@ export default function TransactionsPage() {
         icon={Receipt}
         title="No transactions yet"
         description="Add your first income or expense. It takes a few seconds and shows up on every device you use."
-        action={addButton}
+        action={
+          <div className="flex flex-wrap justify-center gap-2">
+            {addButton}
+            {importLink}
+          </div>
+        }
       />
     );
   } else {
@@ -168,7 +179,12 @@ export default function TransactionsPage() {
         title="Transactions"
         description="Search, filter and edit your income and expenses."
         // Phones use the round + button instead (below).
-        actions={<div className="hidden lg:block">{addButton}</div>}
+        actions={
+          <>
+            {importLink}
+            <div className="hidden lg:block">{addButton}</div>
+          </>
+        }
       />
 
       <div className="space-y-4">

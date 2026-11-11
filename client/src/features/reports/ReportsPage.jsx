@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { ChartColumn, ChevronLeft, ChevronRight, Download } from 'lucide-react';
+import { ChartColumn, ChevronLeft, ChevronRight, Download, Printer } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { fetchReport } from '../../api/reports.js';
@@ -205,11 +205,30 @@ export default function ReportsPage() {
     <>
       <PageHeader
         title="Reports"
+        printHidden
         description="Where your money came from and went, for any period."
-        actions={!rangeError && <DownloadCsvButton from={from} to={to} />}
+        actions={
+          !rangeError && (
+            <div data-print="hide" className="flex flex-wrap items-start gap-2">
+              <Button variant="secondary" onClick={() => window.print()} disabled={!hasData}>
+                <Printer className="size-4" aria-hidden="true" />
+                Print
+              </Button>
+              <DownloadCsvButton from={from} to={to} />
+            </div>
+          )
+        }
       />
 
-      <div className="mb-6 flex flex-wrap items-end gap-3">
+      {/* Paper copy: whose report it is, for which period, and when it was printed. */}
+      <div data-print="only" className="mb-6 border-b border-slate-300 pb-3 text-sm">
+        <p className="text-lg font-semibold">Finance report: {periodLabel}</p>
+        <p className="text-slate-600">
+          {user.name} · {formatDate(from)} to {formatDate(to)} · amounts in {currency} · printed {formatDate(today)}
+        </p>
+      </div>
+
+      <div data-print="hide" className="mb-6 flex flex-wrap items-end gap-3">
         <SegmentedControl
           label="Report period"
           name="view"
@@ -307,7 +326,7 @@ export default function ReportsPage() {
             <>
               {data.byMonth.length > 1 && (
                 <Card>
-                  <CardTitle description="Select a month to see its report.">Month by month</CardTitle>
+                  <CardTitle description={<span data-print="hide">Select a month to see its report.</span>}>Month by month</CardTitle>
                   <TrendChart
                     months={data.byMonth}
                     currency={currency}

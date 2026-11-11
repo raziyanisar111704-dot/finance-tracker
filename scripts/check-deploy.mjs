@@ -5,7 +5,8 @@
 //
 // Without --with-account it only reads (health check, headers, pages).
 // With it, it also signs up a throwaway account (deploy-check-…@example.com),
-// adds one transaction, reads it back and then DELETES the account again, to
+// adds one transaction, reads it back, imports and undoes one row, and then
+// DELETES the account again, to
 // prove that log-in, cookies and the database work in production.
 
 const args = process.argv.slice(2);
@@ -157,6 +158,26 @@ async function accountChecks() {
 
     const csv = await apiCall('/api/export/transactions.csv', { cookie });
     check(csv.status === 200 && (await csv.text()).includes('1234.56'), 'CSV export works', `status ${csv.status}`);
+
+    // CSV import: the duplicate check finds the transaction above, then one
+    // row is imported and undone again.
+    const dup = await apiCall('/api/transactions/import/check', {
+      method: 'POST',
+      cookie,
+      body: { rows: [{ type: 'income', amountMinor: 123456, date: '2026-01-15' }] },
+    });
+    check(dup.status === 200 && (await dup.json()).duplicates?.[0] === 0, 'Import: duplicate check finds the existing transaction', `status ${dup.status}`);
+    const imported = await apiCall('/api/transactions/import', {
+      method: 'POST',
+      cookie,
+      body: { rows: [{ type: 'income', amountMinor: 100, categoryId: salary?.id, date: '2026-01-16', notes: 'deploy check import' }] },
+    });
+    const importBody = await imported.json().catch(() => null);
+    check(imported.status === 201 && importBody?.count === 1, 'Import: a row is imported', `status ${imported.status}`);
+    if (importBody?.importId) {
+      const undo = await apiCall(`/api/transactions/import/${importBody.importId}`, { method: 'DELETE', cookie });
+      check(undo.status === 200, 'Import: undo removes it again', `status ${undo.status}`);
+    }
   } finally {
     if (cookie) {
       const removed = await apiCall('/api/auth/me', { method: 'DELETE', cookie, body: { password } });

@@ -146,7 +146,7 @@ export function TrendChart({ months, currency, selectedMonth, onSelectMonth }) {
   const monthLabel = (month) => (multiYear ? `${formatMonthShort(month)} ’${month.slice(2, 4)}` : formatMonthShort(month));
 
   const toggle = (
-    <div className="flex rounded-lg bg-slate-100 p-0.5 dark:bg-slate-800" role="group" aria-label="View">
+    <div data-print="hide" className="flex rounded-lg bg-slate-100 p-0.5 dark:bg-slate-800" role="group" aria-label="View">
       {[
         { value: 'chart', label: 'Chart', icon: ChartColumn },
         { value: 'table', label: 'Table', icon: Table },
@@ -175,7 +175,12 @@ export function TrendChart({ months, currency, selectedMonth, onSelectMonth }) {
       {view === 'table' ? (
         <TrendTable months={months} currency={currency} onSelectMonth={onSelectMonth} />
       ) : (
-        <div ref={ref} className="relative" style={{ height: TOP + PLOT_HEIGHT + X_AXIS }}>
+        <>
+        {/* On paper the exact numbers read better than a chart sized for the screen. */}
+        <div data-print="only">
+          <TrendTable months={months} currency={currency} onSelectMonth={onSelectMonth} />
+        </div>
+        <div ref={ref} data-print="hide" className="relative" style={{ height: TOP + PLOT_HEIGHT + X_AXIS }}>
           {width > 0 && (
             <>
               <svg width={width} height={TOP + PLOT_HEIGHT + X_AXIS} aria-hidden="true" className="block">
@@ -279,6 +284,7 @@ export function TrendChart({ months, currency, selectedMonth, onSelectMonth }) {
             </>
           )}
         </div>
+        </>
       )}
     </div>
   );

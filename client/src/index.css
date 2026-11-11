@@ -35,3 +35,45 @@ html:has(dialog:modal) {
 .tabular {
   font-variant-numeric: tabular-nums;
 }
+
+/* ---- Printing (Reports → Print, or Ctrl+P) ----
+   data-print="hide"  : not on paper (navigation, buttons, period pickers)
+   data-print="only"  : only on paper (report heading, chart as a table)
+   data-print="flush" : drop the screen padding so the page uses the paper width
+   Dark mode is switched off while printing by lib/print.js. */
+[data-print='only'] {
+  display: none;
+}
+@media print {
+  @page {
+    margin: 14mm 12mm;
+  }
+  html,
+  body {
+    background: #fff !important;
+  }
+  * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  [data-print='hide'] {
+    display: none !important;
+  }
+  [data-print='only'] {
+    display: block !important;
+  }
+  [data-print='flush'] {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+  }
+  /* Keep each card on one page; no shadows or link colours on paper. */
+  section {
+    break-inside: avoid;
+    box-shadow: none !important;
+  }
+  a {
+    color: inherit !important;
+    text-decoration: none !important;
+  }
+}

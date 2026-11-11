@@ -20,6 +20,8 @@ const transactionSchema = new Schema(
     paymentMethod: { type: String, enum: PAYMENT_METHODS, default: 'other' },
     notes: { type: String, trim: true, maxlength: 500, default: '' },
     isRecurring: { type: Boolean, default: false },
+    // Set on rows added by a CSV import, so "Undo this import" removes exactly them.
+    importId: { type: String, default: undefined },
   },
   { timestamps: true, toJSON: toJSONOptions(['userId']) },
 );
@@ -28,5 +30,11 @@ const transactionSchema = new Schema(
 transactionSchema.index({ userId: 1, date: -1, createdAt: -1 });
 // Category totals and budget calculations.
 transactionSchema.index({ userId: 1, categoryId: 1, date: -1 });
+
+// Undo of one import.
+transactionSchema.index(
+  { userId: 1, importId: 1 },
+  { partialFilterExpression: { importId: { $exists: true } } },
+);
 
 export const Transaction = model('Transaction', transactionSchema);

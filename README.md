@@ -1,8 +1,28 @@
 # Finance Tracker
 
-Personal finance tracker built with the MERN stack: React + Vite + Tailwind, Express, and MongoDB Atlas. It is deployed free on Vercel.
+Personal finance tracker built with the MERN stack: React + Vite + Tailwind, Express, and MongoDB Atlas. It is deployed free on Vercel and works on phones, tablets and computers, and can be installed as an app.
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the design, the database schema and the security decisions.
+**Live:** https://finance-tracker-swart-psi.vercel.app
+
+Features:
+- income and expenses with categories, payment methods and notes
+- search and filters
+- dashboard with balance, monthly totals, budget alerts and charts
+- monthly budgets with 80% / 100% warnings
+- month, year and custom reports, with printing and PDF
+- CSV import (bank statements) with preview, duplicate detection and undo
+- CSV and JSON export
+- light and dark mode
+- installable app that opens offline
+
+## Documentation
+
+| Document | For |
+|---|---|
+| [docs/USER_GUIDE.md](docs/USER_GUIDE.md) | **Using the app:** every screen, importing, printing, backups, FAQ |
+| [docs/MAINTENANCE.md](docs/MAINTENANCE.md) | **Looking after it:** setup, deploying, rollback, troubleshooting by symptom, password reset, backups, updates, future risks, where to change things |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | **How it's built:** design, database schema, calculations, security decisions, API |
+| [docs/SECURITY_CHECKLIST.md](docs/SECURITY_CHECKLIST.md) | **What is tested** and the manual checks after each deploy |
 
 ## Requirements
 
@@ -62,7 +82,9 @@ npm run check:deploy -- https://your-app.vercel.app
 npm run check:deploy -- https://your-app.vercel.app --with-account
 ```
 
-Atlas's free tier has no automatic backups: download **Settings → Export your data → Download backup (JSON)** regularly.
+Atlas's free tier has no automatic backups: download **Settings → Your data → Download backup (JSON)** and the CSV regularly.
+
+Forgot your password? There's no reset email yet. Set a new one from your computer with `npm run reset-password -- you@example.com` (see [MAINTENANCE.md](docs/MAINTENANCE.md#reset-a-forgotten-password)).
 
 ## Project layout
 
@@ -71,4 +93,7 @@ Atlas's free tier has no automatic backups: download **Settings → Export your 
 | `client/` | React frontend (Vite dev server proxies `/api` to Express) |
 | `server/` | Express API (`src/app.js` builds the app, `src/server.js` runs it locally) |
 | `api/index.js` | Vercel serverless entry: exports the same Express app |
-| `vercel.json` | Build settings + routing (`/api/*` → API, everything else → React) |
+| `vercel.json` | Build settings + routing (`/api/*` → API, everything else → React) + security headers |
+| `scripts/check-deploy.mjs` | Checks a live deployment from the outside (`npm run check:deploy`) |
+| `server/scripts/reset-password.js` | Sets a new password for an account (`npm run reset-password`) |
+| `docs/` | User guide, maintenance guide, architecture, security checklist |

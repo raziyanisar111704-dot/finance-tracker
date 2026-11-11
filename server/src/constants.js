@@ -20,3 +20,7 @@ export const MAX_AMOUNT_MINOR = 1e13;
 // Calendar date "YYYY-MM-DD" and month "YYYY-MM" (see docs/ARCHITECTURE.md §6).
 export const DATE_PATTERN = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 export const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+// CSV import: rows per import. The browser reads the file; the server only
+// receives the rows the user ticked.
+export const MAX_IMPORT_ROWS = 2000;

@@ -8,7 +8,7 @@
 ## 1. Architecture (simplest practical option)
 
 ```
- Phone / Tablet / Desktop browser (installable PWA later)
+ Phone / Tablet / Desktop browser (also installable as an app)
                  │  HTTPS, same origin: https://<app>.vercel.app
                  ▼
  ┌──────────────────────── Vercel (Hobby, free) ────────────────────────┐
@@ -53,15 +53,15 @@ The same code runs unchanged on Render, Koyeb, a VPS or your own PC, so you are 
 | Styling | Tailwind CSS v4 (`@tailwindcss/vite`) | Dark mode via `class` strategy |
 | Routing | React Router | |
 | Server state | TanStack Query | Gives loading/error/retry/caching for free; ideal for flaky mobile networks |
-| Charts | Recharts | |
+| Charts | Hand-written SVG and HTML bars | No chart library: smaller download, full control over colours, accessibility and the table view |
 | Backend | Node.js 24 LTS + Express 5 | Express 5 catches async errors automatically |
 | Database | MongoDB Atlas M0 + Mongoose | |
 | Validation | Zod | Same schemas style on server (and optionally client) |
 | Auth | bcryptjs + jsonwebtoken + cookie-parser | `bcryptjs` is pure JS, so there are no native build problems on Windows |
 | Security headers | helmet (API) + `vercel.json` headers (page) | CSP, no framing, nosniff |
-| CSV | papaparse (client) | Robust parsing of quotes and commas |
+| CSV | Own code: `server/src/utils/csv.js` (export), `client/src/lib/csvImport.js` (import) | Import is read in the browser; RFC 4180 quoting; 60 unit tests |
 | Testing | Vitest + Supertest + mongodb-memory-server | Tests run against an in-memory MongoDB, not your real data |
-| PWA (Phase 7) | vite-plugin-pwa | |
+| PWA (Phase 7) | Hand-written `client/public/sw.js` + `manifest.webmanifest` | No plugin; the service worker never stores `/api` responses |
 
 Deliberately **not** included: Redux (TanStack Query + React context is enough), the `cors` package (same origin), Next.js (you want to learn Express), and a UI kit (Tailwind + our own small components).
 
@@ -114,14 +114,15 @@ Deliberately **not** included: Redux (TanStack Query + React context is enough),
 - Responsive layout (phone bottom nav, desktop sidebar), light/dark mode
 - Deployed with HTTPS and tested on phone and desktop
 
-### V1.1 (shortly after)
-- CSV import with a preview and row-by-row validation errors
-- Printable report view (print stylesheet)
+### V1.1 (done in Phase 7)
+- Installable app (PWA): home-screen icon, shortcuts, opens offline with a clear message
+- CSV import with column matching, preview, duplicate detection, row-by-row errors and undo
+- Printable report view (print stylesheet; "Save as PDF" from the print dialog)
 
 ### V2+: future enhancements
 - Savings goals with contributions and progress bars
 - Recurring rules (salary, rent, subscriptions) with **scheduled** vs **posted** transactions
-- PWA install + offline viewing + queued offline entries
+- Offline viewing of data + queued offline entries (needs encrypted on-device storage)
 - Password reset by email (needs a free email API, e.g. Resend)
 - Advanced reports (trends, year-over-year), multiple accounts/wallets
 - Bank import via an aggregator: only after evaluating cost, security and privacy
@@ -135,16 +136,16 @@ finance-tracker/
 ├── api/
 │   └── index.js               # Vercel entry: `export default app`
 ├── client/                    # React + Vite frontend
-│   ├── public/                # favicon, PWA icons (later)
+│   ├── public/                # favicon, icons/, manifest.webmanifest, sw.js, theme.js
 │   ├── src/
 │   │   ├── api/               # fetch wrapper + one module per resource
 │   │   ├── components/
 │   │   │   ├── ui/            # Button, Input, Card, Modal, Spinner, EmptyState…
 │   │   │   ├── layout/        # AppShell, Sidebar, BottomNav, Header
 │   │   │   └── charts/
-│   │   ├── features/          # auth, dashboard, transactions, categories, budgets, reports, settings
+│   │   ├── features/          # auth, dashboard, transactions, import, categories, budgets, reports, settings, theme
 │   │   ├── hooks/
-│   │   ├── lib/               # money.js, dates.js (shared formatting & math)
+│   │   ├── lib/               # money.js, dates.js, csvImport.js, pwa.js, print.js, queryClient.js
 │   │   ├── App.jsx
 │   │   ├── main.jsx
 │   │   └── index.css
@@ -163,11 +164,17 @@ finance-tracker/
 │   │   ├── utils/             # money.js, dates.js, AppError.js
 │   │   ├── app.js             # builds the Express app (no listen)
 │   │   └── server.js          # local dev: connect DB + listen
+│   ├── scripts/               # reset-password.js (admin: set a forgotten password)
 │   ├── tests/
 │   ├── .env.example
 │   └── package.json
 ├── docs/
-│   └── ARCHITECTURE.md        # this file
+│   ├── ARCHITECTURE.md        # this file
+│   ├── USER_GUIDE.md          # how to use the app
+│   ├── MAINTENANCE.md         # running, deploying, updating, troubleshooting
+│   └── SECURITY_CHECKLIST.md  # what is tested and how
+├── scripts/
+│   └── check-deploy.mjs       # checks a live deployment from outside
 ├── vercel.json
 ├── .gitignore
 └── README.md
@@ -251,8 +258,10 @@ Transaction {
   paymentMethod: "cash" | "debit_card" | "credit_card" | "upi" | "bank_transfer" | "wallet" | "other"
   notes:         String (≤ 500 chars)
   isRecurring:   Boolean, default false   // V1: simple tag; V2: recurringRuleId
+  importId:      String (UUID), optional  // set by CSV import; "Undo this import" deletes by it
   timestamps
-  indexes: { userId: 1, date: -1 }, { userId: 1, categoryId: 1, date: -1 }
+  indexes: { userId: 1, date: -1 }, { userId: 1, categoryId: 1, date: -1 },
+           { userId: 1, importId: 1 } (only rows that have an importId)
 }
 
 Budget {
@@ -306,7 +315,7 @@ RecurringRule { userId, template: {type, amountMinor, categoryId, paymentMethod,
 - Zod validation on every body and query. Unknown fields are stripped; values that aren't strings are rejected, which blocks NoSQL injection such as `{ "$gt": "" }`.
 - Rate limits (stored in MongoDB, so all serverless instances share them): login 10 attempts / 15 min per IP and per email; register 5 / hour per IP; delete account 5 / 15 min per user. The response is the same for "wrong email" and "wrong password".
   - Trade-off: the per-email limit means someone who knows your email can block logins to it for up to 15 minutes. Accepted, because it is what stops password guessing spread across many computers.
-- `helmet` security headers on the API; JSON body limit 1 MB; `Cache-Control: no-store` on every API response.
+- `helmet` security headers on the API; JSON body limit 1 MB (2 MB for CSV import only); `Cache-Control: no-store` on every API response.
 - The page itself gets headers from `vercel.json`: a Content Security Policy that allows only this site's own scripts, styles and connections (an injected `<script>` is refused), `frame-ancestors 'none'` + `X-Frame-Options: DENY` (no clickjacking), `nosniff`, `Referrer-Policy: same-origin`. For this, the theme script lives in `client/public/theme.js` instead of inline in `index.html`.
 - Central error handler: logs details server-side and sends users a generic message (no stack traces).
 - Secrets only in env vars (`.env` is gitignored; `.env.example` is committed).
@@ -318,7 +327,7 @@ RecurringRule { userId, template: {type, amountMinor, categoryId, paymentMethod,
 
 ---
 
-## 9. API overview (V1)
+## 9. API overview
 
 ```
 POST   /api/auth/register         POST /api/auth/login        POST /api/auth/logout
@@ -338,7 +347,10 @@ GET    /api/summary/trend?months=6             (income vs expense chart)
 GET    /api/reports?from&to                    (custom range / yearly)
 
 GET    /api/export/transactions.csv            GET /api/export/backup.json
-POST   /api/import/transactions  (V1.1)
+POST   /api/transactions/import/check     { rows: [{date,type,amountMinor}] } → { duplicates: [index…] }
+POST   /api/transactions/import           { rows: [...] } → { importId, count }
+                                           all or nothing; ≤ 2,000 rows; 2 MB body; 20 imports/hour/user
+DELETE /api/transactions/import/:importId → { deleted }  (undo)
 GET    /api/health
 ```
 
@@ -354,7 +366,7 @@ GET    /api/health
 | 4. Frontend | Layout, auth pages, dashboard, transactions, categories, budgets, reports, export | 2–3 weeks | Full V1 usable locally on phone and desktop sizes |
 | 5. Testing & security | Calculation tests, auth/IDOR tests, responsive checks, `npm audit` | 3–5 days | Checklist complete |
 | 6. Deployment | Production env vars, Atlas user, final deploy | 1–2 days | **Milestone:** add on phone → see it on desktop |
-| 7. Improvements | PWA, CSV import, print view, goals, recurring, offline | Ongoing | Driven by real use |
+| 7. Improvements | PWA ✅, CSV import ✅, print view ✅; next: goals, recurring, password reset by email | Ongoing | Driven by real use |
 
 > Phase 2 includes an early skeleton deployment. This is slightly earlier than the original plan, but it shakes out deployment and environment-variable problems while the app is tiny, when they're easy to debug.
 
@@ -367,8 +379,8 @@ GET    /api/health
 3. **Vercel Hobby is non-commercial.** Fine for personal use. If you ever sell this as a product, you'd need a paid plan.
 4. **Shared DB performance (~100 ops/s).** It's irrelevant for one person, but this isn't for thousands of users.
 5. **Atlas auto-pause** after a long period with zero connections. Daily use prevents it; if it happens, click "Resume" in Atlas (no data is lost).
-6. **No password reset in V1** (no email service). Use a password manager. Email reset is planned for V2.
+6. **No password reset by email** (no email service). Use a password manager. If you do forget it, whoever has the database connection string can set a new one with `npm run reset-password` (see MAINTENANCE.md). Email reset is planned for V2.
 7. **Open DB network access (`0.0.0.0/0`).** Mitigated by strong credentials and TLS.
-8. **Offline support** is V2. V1 needs an internet connection, but shows clear retry messages on slow or failed requests.
+8. **Offline:** the installed app opens without a connection, says so, and loads by itself on reconnect. Financial data is deliberately *not* stored on the device, so it can't be viewed or edited offline (V2).
 9. **Backup size:** a Vercel function response is limited to ~4.5 MB. A JSON backup reaches that at roughly 15,000+ transactions (years of daily use). Before then, add a date-range option or split the backup into parts.
 10. **Currency is a display setting, not a conversion.** Amounts are stored in minor units of the chosen currency. Switching between currencies with different decimal places (e.g. INR with 2 → JPY with 0) would change how stored amounts read. Pick the currency once.

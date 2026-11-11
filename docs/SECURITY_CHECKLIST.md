@@ -1,4 +1,4 @@
-# Testing & security checklist (Phase 5)
+# Testing & security checklist
 
 Run `npm test` and `npm audit` from the project root before every deploy.
 Everything marked **auto** is covered by those tests; **manual** items are
@@ -36,6 +36,7 @@ checked by hand on the live site (see the end of this file).
 | Can't attach data to someone else's category, or move transactions into it | auto: `transactions.test.js`, `security.test.js` |
 | Summaries, trends, reports, budget copy and exports contain only your own data | auto: `summary.test.js`, `export.test.js`, `security.test.js` |
 | A `userId` (or `tokenVersion`, `passwordHash`, `email`) sent in a request body is ignored | auto: `security.test.js`, `auth.test.js` |
+| CSV import: only your own categories; can't undo someone else's import; duplicate check sees only your data; a `userId`/`importId` in the rows is ignored | auto: `import.test.js` |
 
 ## Attacks on input and the browser
 
@@ -45,12 +46,14 @@ checked by hand on the live site (see the end of this file).
 | Search text is matched literally, never as a pattern | auto: `transactions.test.js` |
 | Requests from other websites (CSRF) refused for every change | auto: `auth.test.js`, `security.test.js` |
 | CSV export can't run spreadsheet formulas (`=HYPERLINK(…)` is neutralised) | auto: `utils.test.js`, `export.test.js` |
+| CSV import is all or nothing, uses the same rules as adding by hand, max 2,000 rows / 2 MB, 20 imports per hour per user | auto: `import.test.js` |
+| The imported file is read in the browser; only the ticked rows are sent. Notes are stored as plain text and shown escaped by React | `csvImport.test.js`, browser check (Phase 7.2) |
 | Errors never reveal internal details; broken / oversized bodies get clear 400 / 413 | auto: `security.test.js` |
 | API responses are never cached (`Cache-Control: no-store`) | auto: `security.test.js` |
 | The service worker (installed app) stores only the app's own files, never `/api` responses, so no financial data stays on the device | `client/public/sw.js` skips `/api/`; browser check (Phase 7.1), also after log out |
 | Page has a Content Security Policy (only this site's scripts) and can't be framed | browser check against the production build; **manual** on the live site |
 | No `dangerouslySetInnerHTML` / `eval` in the client; React escapes all user text | code review |
-| Dependencies have no known vulnerabilities | `npm audit` (0 found on 5 Nov 2026) |
+| Dependencies have no known vulnerabilities | `npm audit` (0 found on 11 Nov 2026) |
 
 ## Responsive and accessible
 

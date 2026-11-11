@@ -1,9 +1,9 @@
-import { ChevronRight, DatabaseBackup, Download, LogOut, Share, Smartphone, Tags, Trash } from 'lucide-react';
+import { ChevronRight, DatabaseBackup, Download, FileUp, LogOut, Share, Smartphone, Tags, Trash } from 'lucide-react';
 import { useId, useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { downloadBackup, downloadTransactionsCsv } from '../../api/export.js';
 import { Alert } from '../../components/ui/Alert.jsx';
-import { Button } from '../../components/ui/Button.jsx';
+import { Button, buttonClasses } from '../../components/ui/Button.jsx';
 import { Card, CardTitle } from '../../components/ui/Card.jsx';
 import { Dialog, DialogBody, DialogFooter } from '../../components/ui/Dialog.jsx';
 import { PageHeader } from '../../components/ui/PageHeader.jsx';
@@ -367,7 +367,7 @@ export default function SettingsPage() {
 
           <Card>
             <CardTitle description="Your data is yours. Reports also have a CSV download for one period.">
-              Export your data
+              Your data
             </CardTitle>
             <div className="space-y-4">
               <div>
@@ -381,6 +381,15 @@ export default function SettingsPage() {
                   A complete copy of your categories, transactions and budgets.
                 </p>
                 <DownloadButton label="Download backup (JSON)" icon={DatabaseBackup} download={downloadBackup} />
+              </div>
+              <div>
+                <p className="mb-2 text-sm text-slate-600 dark:text-slate-300">
+                  Bring in transactions from a bank statement or a CSV downloaded from this app.
+                </p>
+                <Link to="/transactions/import" className={buttonClasses({ variant: 'secondary' })}>
+                  <FileUp className="size-4" aria-hidden="true" />
+                  Import from CSV
+                </Link>
               </div>
             </div>
           </Card>

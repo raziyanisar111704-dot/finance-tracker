@@ -22,6 +22,9 @@ const app = express();
 app.set('trust proxy', 1);
 
 app.use(helmet());
+// A 2,000-row import can exceed 1 MB, so that one route gets a bigger limit.
+// (The body is parsed only once: the general parser skips it afterwards.)
+app.use('/api/transactions/import', express.json({ limit: '2mb' }));
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
 
