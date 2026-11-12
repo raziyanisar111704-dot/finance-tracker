@@ -6,7 +6,7 @@ How to use every part of the app, on a phone, tablet or computer.
 
 Your data is stored online in your account, so anything you add on your phone appears on your computer and the other way round. The app never asks for, and must never be given, bank passwords, card numbers, PINs or CVVs. It only records amounts, dates, categories and your own notes.
 
-> **In a hurry?** The app has a built-in **Quick guide**: eight short steps, each with a button that takes you there.
+> **In a hurry?** The app has a built-in **Quick guide**: eight short steps, each with a button that takes you there. **Take the tour** (on the guide page, and on the Dashboard of a new account) shows the same steps one at a time.
 > - On a phone: the **?** at the top right.
 > - On a computer: **Quick guide** in the left menu.
 > - Also in Settings, and on the Dashboard of a new account.
@@ -79,7 +79,7 @@ On a phone the menu is the bar at the **bottom**; on a computer it's the **left*
 | **Settings** | Profile, install, appearance (light/dark), categories, quick guide, your data (export, import), sessions, delete account |
 | **Quick guide** (? on phones) | The first steps, in order, with a button to each place |
 
-A **new account** also sees a *Welcome* card on the Dashboard with **Open the quick guide** and **Add your first transaction**. It disappears after your first transaction, or when you press **Hide**.
+A **new account** also sees a *Welcome* card on the Dashboard with **Take the tour** (the steps one at a time: Next, Back, Esc to close) and **Open the quick guide**. It disappears after your first transaction, or when you press **Hide**.
 
 The ☀/🌙 button (top right on phones, at the bottom of the left menu on computers, and in Settings → Appearance) switches **Light**, **Dark** or **System** (follow the device).
 

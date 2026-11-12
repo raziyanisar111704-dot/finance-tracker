@@ -1,4 +1,4 @@
-import { ChartColumn, ChartPie, Plus, Receipt, Sparkles } from 'lucide-react';
+import { ChartColumn, ChartPie, PlayCircle, Plus, Receipt, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { Alert } from '../../components/ui/Alert.jsx';
@@ -12,6 +12,7 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle.js';
 import { formatDate, formatMonth, formatMonthName, todayIn } from '../../lib/dates.js';
 import { formatMoney } from '../../lib/money.js';
 import { useMe } from '../auth/useAuth.js';
+import { QuickTour } from '../guide/QuickTour.jsx';
 import { useCategories } from '../categories/useCategories.js';
 import { TransactionList } from '../transactions/TransactionList.jsx';
 import { AddTransactionFab, useTransactionDialogs } from '../transactions/useTransactionDialogs.jsx';
@@ -36,8 +37,9 @@ function readWelcomeHidden() {
 
 // For new accounts (no transactions yet): where to start. Disappears by
 // itself after the first transaction, or when hidden.
-function WelcomeCard({ onAdd }) {
+function WelcomeCard() {
   const [hidden, setHidden] = useState(readWelcomeHidden);
+  const [touring, setTouring] = useState(false);
   if (hidden) return null;
 
   function hide() {
@@ -59,23 +61,24 @@ function WelcomeCard({ onAdd }) {
         <div className="min-w-0">
           <h2 className="font-semibold">Welcome to Finance Tracker</h2>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-            New here? The quick guide shows how to get started in eight short steps: set your opening balance, add
-            transactions, set budgets and more.
+            New here? A two-minute tour walks you through the first steps: opening balance, adding transactions,
+            budgets, reports and more. You can also read the quick guide any time from the menu.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
-            <Link to="/guide" className={buttonClasses()}>
+            <Button onClick={() => setTouring(true)}>
+              <PlayCircle className="size-4" aria-hidden="true" />
+              Take the tour
+            </Button>
+            <Link to="/guide" className={buttonClasses({ variant: 'secondary' })}>
               Open the quick guide
             </Link>
-            <Button variant="secondary" onClick={onAdd}>
-              <Plus className="size-4" aria-hidden="true" />
-              Add your first transaction
-            </Button>
             <Button variant="ghost" onClick={hide}>
               Hide
             </Button>
           </div>
         </div>
       </div>
+      <QuickTour open={touring} onClose={() => setTouring(false)} />
     </section>
   );
 }
@@ -207,7 +210,7 @@ export default function DashboardPage() {
         <Alert className="mb-4">Couldn't refresh: {summary.error.message} Showing the last loaded numbers.</Alert>
       )}
 
-      {isCurrentMonth && data.recentTransactions.length === 0 && <WelcomeCard onAdd={openAdd} />}
+      {isCurrentMonth && data.recentTransactions.length === 0 && <WelcomeCard />}
 
       {/* While another month loads, the current numbers stay, dimmed: no flash, no jump. */}
       <div className={`space-y-6 transition-opacity ${summary.isPlaceholderData ? 'opacity-60' : ''}`}>

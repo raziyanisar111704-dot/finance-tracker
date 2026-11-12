@@ -403,7 +403,7 @@ If it fails and the fix isn't clear, go back: `git checkout main` (then `git bra
 | **What is printed** | `data-print="hide"` / `"only"` attributes on elements, and the `@media print` block in `client/src/index.css` |
 | **Security headers / CSP** | `vercel.json` → `headers` (page); `helmet()` in `server/src/app.js` (API) |
 | **App name, icon, shortcuts** (installed app) | `client/public/manifest.webmanifest`, `client/public/icons/`, `client/index.html` |
-| The in-app **Quick guide** text | `client/src/features/guide/GuidePage.jsx` (`STEPS` and `TIPS` at the top). Keep it in step with `docs/USER_GUIDE.md` |
+| The in-app **Quick guide** text | `client/src/features/guide/guideContent.js` (`GUIDE_STEPS`, `GUIDE_TIPS`), used by both the guide page and the Quick tour. Keep it in step with `docs/USER_GUIDE.md` |
 | A new **page** | A component in `client/src/features/<name>/`, a `<Route>` in `client/src/App.jsx`, and a menu entry in `client/src/components/layout/navItems.js` |
 | A new **API endpoint** | Validator (`server/src/validators/`), controller (`server/src/controllers/`), route (`server/src/routes/`), a test in `server/tests/`, and a function in `client/src/api/` |
 
