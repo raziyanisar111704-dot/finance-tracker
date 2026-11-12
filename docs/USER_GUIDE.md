@@ -70,6 +70,8 @@ After installing:
 
 On a phone the menu is the bar at the **bottom**; on a computer it's the **left** side.
 
+On a computer, **Collapse sidebar** (near the bottom of the left menu) shrinks the menu to a narrow strip of icons and gives the page more room. Hover an icon to see its name, and press the same button (now **Expand sidebar**) to open it again. The app remembers your choice on that device.
+
 | Screen | What it's for |
 |---|---|
 | **Dashboard** | This month at a glance: balance, income, spending, savings, budget warnings, charts, recent transactions |

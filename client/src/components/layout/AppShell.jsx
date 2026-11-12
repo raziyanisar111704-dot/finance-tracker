@@ -1,13 +1,39 @@
 import { CircleHelp } from 'lucide-react';
+import { useState } from 'react';
 import { Link, Outlet } from 'react-router';
 import { ThemeToggle } from '../../features/theme/ThemeToggle.jsx';
 import { Logo } from '../ui/Logo.jsx';
 import { BottomNav } from './BottomNav.jsx';
 import { OfflineBanner } from './OfflineBanner.jsx';
-import { Sidebar } from './Sidebar.jsx';
+import { SIDEBAR_MOTION, Sidebar } from './Sidebar.jsx';
+
+const COLLAPSED_KEY = 'ft-sidebar-collapsed';
+
+// Storage can be blocked (private windows, strict settings); the sidebar
+// then simply starts open and forgets the choice.
+function readCollapsed() {
+  try {
+    return localStorage.getItem(COLLAPSED_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
 
 // Layout for every logged-in page: sidebar on desktop, header + bottom bar on phones.
 export function AppShell() {
+  const [collapsed, setCollapsed] = useState(readCollapsed);
+
+  function toggleSidebar() {
+    const next = !collapsed;
+    setCollapsed(next);
+    try {
+      if (next) localStorage.setItem(COLLAPSED_KEY, '1');
+      else localStorage.removeItem(COLLAPSED_KEY);
+    } catch {
+      // Not saved; it still works for this visit.
+    }
+  }
+
   return (
     <div className="min-h-dvh">
       <a
@@ -19,10 +45,13 @@ export function AppShell() {
       </a>
 
       <div data-print="hide">
-        <Sidebar />
+        <Sidebar collapsed={collapsed} onToggle={toggleSidebar} />
       </div>
 
-      <div className="lg:pl-64" data-print="flush">
+      <div
+        data-print="flush"
+        className={`transition-[padding] ${SIDEBAR_MOTION} ${collapsed ? 'lg:pl-20' : 'lg:pl-64'}`}
+      >
         <header data-print="hide" className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white/95 px-4 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur lg:hidden dark:border-slate-800 dark:bg-slate-900/95">
           <Logo />
           <div className="flex items-center gap-1">

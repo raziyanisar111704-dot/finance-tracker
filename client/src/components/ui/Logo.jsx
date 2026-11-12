@@ -1,4 +1,4 @@
-export function Logo({ className = '' }) {
+export function Logo({ className = '', textClassName = '' }) {
   return (
     <span className={`inline-flex items-center gap-2.5 font-semibold ${className}`}>
       <svg viewBox="0 0 32 32" className="size-8 shrink-0" aria-hidden="true">
@@ -12,7 +12,7 @@ export function Logo({ className = '' }) {
           strokeLinejoin="round"
         />
       </svg>
-      <span>Finance Tracker</span>
+      <span className={textClassName}>Finance Tracker</span>
     </span>
   );
 }
