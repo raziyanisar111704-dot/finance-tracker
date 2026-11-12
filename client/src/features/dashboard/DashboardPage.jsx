@@ -1,7 +1,8 @@
-import { ChartColumn, ChartPie, Plus, Receipt } from 'lucide-react';
+import { ChartColumn, ChartPie, Plus, Receipt, Sparkles } from 'lucide-react';
+import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { Alert } from '../../components/ui/Alert.jsx';
-import { Button } from '../../components/ui/Button.jsx';
+import { Button, buttonClasses } from '../../components/ui/Button.jsx';
 import { Card, CardTitle } from '../../components/ui/Card.jsx';
 import { EmptyState } from '../../components/ui/EmptyState.jsx';
 import { PageHeader } from '../../components/ui/PageHeader.jsx';
@@ -22,6 +23,62 @@ import { TrendChart } from './TrendChart.jsx';
 import { useMonthSummary, useTrend } from './useDashboard.js';
 
 const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+const WELCOME_HIDDEN_KEY = 'ft-welcome-hidden';
+
+function readWelcomeHidden() {
+  try {
+    return localStorage.getItem(WELCOME_HIDDEN_KEY) === '1';
+  } catch {
+    return false; // storage blocked (private mode): just show it
+  }
+}
+
+// For new accounts (no transactions yet): where to start. Disappears by
+// itself after the first transaction, or when hidden.
+function WelcomeCard({ onAdd }) {
+  const [hidden, setHidden] = useState(readWelcomeHidden);
+  if (hidden) return null;
+
+  function hide() {
+    try {
+      localStorage.setItem(WELCOME_HIDDEN_KEY, '1');
+    } catch {
+      // not remembered; hidden until the next visit
+    }
+    setHidden(true);
+  }
+
+  return (
+    <section
+      aria-label="Welcome"
+      className="mb-6 rounded-2xl border border-teal-200 bg-teal-50 p-5 shadow-sm dark:border-teal-900 dark:bg-teal-950/40"
+    >
+      <div className="flex gap-4">
+        <Sparkles className="mt-0.5 size-6 shrink-0 text-teal-700 dark:text-teal-400" aria-hidden="true" />
+        <div className="min-w-0">
+          <h2 className="font-semibold">Welcome to Finance Tracker</h2>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+            New here? The quick guide shows how to get started in eight short steps: set your opening balance, add
+            transactions, set budgets and more.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link to="/guide" className={buttonClasses()}>
+              Open the quick guide
+            </Link>
+            <Button variant="secondary" onClick={onAdd}>
+              <Plus className="size-4" aria-hidden="true" />
+              Add your first transaction
+            </Button>
+            <Button variant="ghost" onClick={hide}>
+              Hide
+            </Button>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 function NoComparison({ children }) {
   return <p className="text-sm text-slate-500 dark:text-slate-400">{children}</p>;
@@ -149,6 +206,8 @@ export default function DashboardPage() {
       {summary.isError && (
         <Alert className="mb-4">Couldn't refresh: {summary.error.message} Showing the last loaded numbers.</Alert>
       )}
+
+      {isCurrentMonth && data.recentTransactions.length === 0 && <WelcomeCard onAdd={openAdd} />}
 
       {/* While another month loads, the current numbers stay, dimmed: no flash, no jump. */}
       <div className={`space-y-6 transition-opacity ${summary.isPlaceholderData ? 'opacity-60' : ''}`}>

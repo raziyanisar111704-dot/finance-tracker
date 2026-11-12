@@ -110,6 +110,17 @@ async function readOnlyChecks() {
   const missingBody = await missing.json().catch(() => null);
   check(missing.status === 404 && missingBody?.error, 'Unknown API routes answer with a JSON 404', `status ${missing.status}`);
 
+  // Password reset by email: an address with no account, so nothing is sent.
+  const forgot = await get('/api/auth/forgot-password', {
+    method: 'POST',
+    headers: { Origin: origin, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: `nobody-${Date.now()}@example.com` }),
+  });
+  check(forgot.status === 200, 'Password reset by email is set up',
+    forgot.status === 503
+      ? 'not set up: add EMAIL_PROVIDER, EMAIL_API_KEY, EMAIL_FROM and APP_URL on Vercel, then redeploy (docs/MAINTENANCE.md)'
+      : `status ${forgot.status}`);
+
   const csrf = await get('/api/auth/login', {
     method: 'POST',
     headers: { Origin: 'https://evil.example', 'Content-Type': 'application/json' },

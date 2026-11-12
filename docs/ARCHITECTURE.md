@@ -118,12 +118,12 @@ Deliberately **not** included: Redux (TanStack Query + React context is enough),
 - Installable app (PWA): home-screen icon, shortcuts, opens offline with a clear message
 - CSV import with column matching, preview, duplicate detection, row-by-row errors and undo
 - Printable report view (print stylesheet; "Save as PDF" from the print dialog)
+- Password reset by email (Brevo or Resend web API; see §8)
 
 ### V2+: future enhancements
 - Savings goals with contributions and progress bars
 - Recurring rules (salary, rent, subscriptions) with **scheduled** vs **posted** transactions
 - Offline viewing of data + queued offline entries (needs encrypted on-device storage)
-- Password reset by email (needs a free email API, e.g. Resend)
 - Advanced reports (trends, year-over-year), multiple accounts/wallets
 - Bank import via an aggregator: only after evaluating cost, security and privacy
 
@@ -234,6 +234,8 @@ User {
   timezone:         String, default "Asia/Kolkata"  // IANA
   openingBalanceMinor: Number (int), default 0
   tokenVersion:     Number, default 0 // bump to log out all devices
+  resetTokenHash:   String, select:false  // SHA-256 of the emailed reset token
+  resetTokenExpiresAt: Date, select:false // 30 minutes after the request
   timestamps
 }
 
@@ -323,6 +325,15 @@ RecurringRule { userId, template: {type, amountMinor, categoryId, paymentMethod,
   - **Honest limitation:** Vercel functions have changing IPs, so Atlas network access must allow `0.0.0.0/0`. Security then relies on the strong credentials and TLS, which is standard for this setup.
 - We never store bank passwords, card numbers, PINs or CVVs. Only amounts, categories and your notes.
 
+**Password reset by email**
+1. **Forgot password?** → `POST /api/auth/forgot-password { email }`. The answer is always the same ("If an account exists…"), and nothing is sent for unknown addresses.
+2. For a real account: 32 random bytes (base64url) become the token. Only its **SHA-256 hash** and an expiry (**30 minutes**) are stored, so a database leak can't be used to reset passwords. A new request replaces the old token.
+3. The link is built from the `APP_URL` setting, **never from the request's Host header**, which an attacker could forge to point the link at their own site.
+4. The email is sent through Brevo's or Resend's web API with `fetch` (`services/email.service.js`). Locally it's printed in the terminal; in tests it's kept in memory.
+5. The reset page moves the token out of the address bar (into history state) as soon as it opens. The page loads nothing from other sites, and `Referrer-Policy: same-origin` keeps the token from leaking through referrers.
+6. `POST /api/auth/reset-password { token, password }`: same password rules as sign-up. A single atomic update sets the new hash, removes the token (single use) and bumps `tokenVersion`, which logs out every device. It also lifts the per-email login lock and sends a "password was changed" email.
+7. Limits: 3 reset emails/hour per address, 5/hour per IP; 10 reset attempts/15 min per IP.
+
 **Account deletion:** requires retyping your password. It deletes all transactions, budgets and categories, then the user. The UI suggests downloading a backup first.
 
 ---
@@ -331,6 +342,7 @@ RecurringRule { userId, template: {type, amountMinor, categoryId, paymentMethod,
 
 ```
 POST   /api/auth/register         POST /api/auth/login        POST /api/auth/logout
+POST   /api/auth/forgot-password  POST /api/auth/reset-password
 GET    /api/auth/me               PATCH /api/auth/me (settings) DELETE /api/auth/me
 
 GET    /api/categories            POST /api/categories
@@ -366,7 +378,7 @@ GET    /api/health
 | 4. Frontend | Layout, auth pages, dashboard, transactions, categories, budgets, reports, export | 2–3 weeks | Full V1 usable locally on phone and desktop sizes |
 | 5. Testing & security | Calculation tests, auth/IDOR tests, responsive checks, `npm audit` | 3–5 days | Checklist complete |
 | 6. Deployment | Production env vars, Atlas user, final deploy | 1–2 days | **Milestone:** add on phone → see it on desktop |
-| 7. Improvements | PWA ✅, CSV import ✅, print view ✅; next: goals, recurring, password reset by email | Ongoing | Driven by real use |
+| 7. Improvements | PWA ✅, CSV import ✅, print view ✅; password reset by email ✅; next: goals, recurring, change password in Settings | Ongoing | Driven by real use |
 
 > Phase 2 includes an early skeleton deployment. This is slightly earlier than the original plan, but it shakes out deployment and environment-variable problems while the app is tiny, when they're easy to debug.
 
@@ -379,7 +391,7 @@ GET    /api/health
 3. **Vercel Hobby is non-commercial.** Fine for personal use. If you ever sell this as a product, you'd need a paid plan.
 4. **Shared DB performance (~100 ops/s).** It's irrelevant for one person, but this isn't for thousands of users.
 5. **Atlas auto-pause** after a long period with zero connections. Daily use prevents it; if it happens, click "Resume" in Atlas (no data is lost).
-6. **No password reset by email** (no email service). Use a password manager. If you do forget it, whoever has the database connection string can set a new one with `npm run reset-password` (see MAINTENANCE.md). Email reset is planned for V2.
+6. **Password reset emails need a free email account** (Brevo). Sending "from" a Gmail address through it may land in Spam until marked "Not spam"; a custom domain fixes that. Without email, `npm run reset-password` (see MAINTENANCE.md) still works for the owner.
 7. **Open DB network access (`0.0.0.0/0`).** Mitigated by strong credentials and TLS.
 8. **Offline:** the installed app opens without a connection, says so, and loads by itself on reconnect. Financial data is deliberately *not* stored on the device, so it can't be viewed or edited offline (V2).
 9. **Backup size:** a Vercel function response is limited to ~4.5 MB. A JSON backup reaches that at roughly 15,000+ transactions (years of daily use). Before then, add a date-range option or split the backup into parts.

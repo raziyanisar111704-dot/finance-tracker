@@ -1,4 +1,4 @@
-import { ChevronRight, DatabaseBackup, Download, FileUp, LogOut, Share, Smartphone, Tags, Trash } from 'lucide-react';
+import { ChevronRight, CircleHelp, DatabaseBackup, Download, FileUp, LogOut, Share, Smartphone, Tags, Trash } from 'lucide-react';
 import { useId, useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { downloadBackup, downloadTransactionsCsv } from '../../api/export.js';
@@ -354,6 +354,24 @@ export default function SettingsPage() {
                 <span className="block font-semibold">Categories</span>
                 <span className="mt-0.5 block text-sm text-slate-500 dark:text-slate-400">
                   Add, rename, recolour or archive your categories.
+                </span>
+              </span>
+              <ChevronRight className="size-5 shrink-0 text-slate-400" aria-hidden="true" />
+            </Link>
+          </Card>
+
+          <Card padded={false}>
+            <Link
+              to="/guide"
+              className="flex items-center gap-4 rounded-2xl p-5 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-teal-600 dark:hover:bg-slate-800/50"
+            >
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-teal-700 dark:bg-teal-950 dark:text-teal-300">
+                <CircleHelp className="size-5" aria-hidden="true" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-semibold">Quick guide</span>
+                <span className="mt-0.5 block text-sm text-slate-500 dark:text-slate-400">
+                  How to use the app, in eight short steps.
                 </span>
               </span>
               <ChevronRight className="size-5 shrink-0 text-slate-400" aria-hidden="true" />

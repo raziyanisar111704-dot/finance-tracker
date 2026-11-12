@@ -6,6 +6,13 @@ How to use every part of the app, on a phone, tablet or computer.
 
 Your data is stored online in your account, so anything you add on your phone appears on your computer and the other way round. The app never asks for, and must never be given, bank passwords, card numbers, PINs or CVVs. It only records amounts, dates, categories and your own notes.
 
+> **In a hurry?** The app has a built-in **Quick guide**: eight short steps, each with a button that takes you there.
+> - On a phone: the **?** at the top right.
+> - On a computer: **Quick guide** in the left menu.
+> - Also in Settings, and on the Dashboard of a new account.
+>
+> This document is the full manual.
+
 ---
 
 ## Contents
@@ -31,7 +38,7 @@ Your data is stored online in your account, so anything you add on your phone ap
 
 1. Open the site and choose **Create account**.
 2. Enter your name, email and a password of **10 to 64 characters**. A short sentence is easy to remember and hard to guess, for example *"mango chai at 7 on sunday"*.
-3. **Save the password in a password manager** (Google Password Manager, Apple Passwords, Bitwarden…). There is no "Forgot password" email yet. If you do lose it, see [section 14](#14-questions-and-problems).
+3. **Save the password in a password manager** (Google Password Manager, Apple Passwords, Bitwarden…). If you do forget it, use **Forgot password?** on the login page (see [section 14](#14-questions-and-problems)).
 4. You are taken to the **Dashboard**. Your account already has 17 ready-made categories (Groceries, Rent & Housing, Salary, …).
 5. Go to **Settings** once and check:
    - **Currency** (default ₹ INR) and **Time zone** (default India). The time zone decides what "today" and "this month" mean.
@@ -69,7 +76,10 @@ On a phone the menu is the bar at the **bottom**; on a computer it's the **left*
 | **Transactions** | Every income and expense: add, edit, delete, search, filter, import |
 | **Budgets** | Monthly spending limits per category, and how much is left |
 | **Reports** | Any month, year or date range: totals, trends, categories, payment methods; download CSV; print |
-| **Settings** | Profile, install, appearance (light/dark), categories, your data (export, import), sessions, delete account |
+| **Settings** | Profile, install, appearance (light/dark), categories, quick guide, your data (export, import), sessions, delete account |
+| **Quick guide** (? on phones) | The first steps, in order, with a button to each place |
+
+A **new account** also sees a *Welcome* card on the Dashboard with **Open the quick guide** and **Add your first transaction**. It disappears after your first transaction, or when you press **Hide**.
 
 The ☀/🌙 button (top right on phones, at the bottom of the left menu on computers, and in Settings → Appearance) switches **Light**, **Dark** or **System** (follow the device).
 
@@ -231,7 +241,7 @@ If anything is wrong in the request, **nothing** is saved (all or nothing) and t
 | **Sessions** | **Log out**, or **Log out of all devices** (for example after using a shared or lost phone) |
 | **Delete account** | Permanently deletes your account and **all** its data after you type your password. Download a backup first |
 
-There is no "change password" screen yet. See [section 14](#14-questions-and-problems).
+There is no "change password" screen yet. To change it, log out and use **Forgot password?** on the login page.
 
 ---
 
@@ -269,7 +279,8 @@ All amounts are stored as whole paise, so totals are always exact (no rounding e
 | Problem | What to do |
 |---|---|
 | **"Too many attempts"** at log-in | 10 wrong tries lock that email (and that network) for up to 15 minutes. Wait, then try again carefully |
-| **Forgot the password** | No reset email yet. The site owner can set a new password with `npm run reset-password` ([MAINTENANCE.md](MAINTENANCE.md#reset-a-forgotten-password)) |
+| **Forgot the password** | Login page → **Forgot password?** → enter your email → open the link in the email (check **Spam**; it works once, for 30 minutes; only the newest email works) → choose a new password. Every device is logged out, and you get a "password was changed" email. If it says *"not set up"*, the site owner can use `npm run reset-password` ([MAINTENANCE.md](MAINTENANCE.md#reset-a-forgotten-password)) |
+| **"Your password was changed" email you didn't expect** | Someone with access to your email reset it. Secure your email account, then use **Forgot password?** yourself |
 | **"You're offline"** / "Can't reach the server" | Check Wi-Fi or mobile data. The app loads by itself when the connection returns |
 | **The first load of the day is slow** (a few seconds) | Normal for the free hosting: the server "wakes up". Later requests are fast |
 | **Amount refused** | Use a dot for decimals, no minus sign, and at most 2 decimals |

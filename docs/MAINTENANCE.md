@@ -109,7 +109,7 @@ If the GitHub, Vercel and Atlas logins are safe, everything else can be rebuilt 
 3. **Make the change.** Section 14 says which files to edit for common changes.
 4. **Test:**
    ```powershell
-   npm test          # 234 automated tests (server + client)
+   npm test          # 251 automated tests (server + client)
    npm run build     # proves the production build works
    ```
    Also try the change on a phone-sized window: in the browser press `F12`, then the phone/tablet icon.
@@ -139,10 +139,48 @@ If the GitHub, Vercel and Atlas logins are safe, everything else can be rebuilt 
 | `PORT` | `4000` | don't set |
 | `NODE_ENV` | `development` | don't set (Vercel sets `production`) |
 | `DNS_SERVERS` | only if you get `querySrv ECONNREFUSED` (section 8) | **never** |
+| `EMAIL_PROVIDER` | leave unset: reset emails are **printed in the API terminal** | `brevo` (or `resend`) |
+| `EMAIL_API_KEY` | leave unset | the API key from Brevo / Resend |
+| `EMAIL_FROM` | leave unset | `Finance Tracker <your-verified-sender@gmail.com>` |
+| `APP_URL` | leave unset (defaults to `http://localhost:5173`) | `https://finance-tracker-swart-psi.vercel.app` (no `/` at the end) |
+
+Without the four email variables the live site works normally, except **Forgot password?**, which answers *"Password reset by email is not set up on this site yet."* `npm run check:deploy` reports it as a FAIL until it's set up.
 
 The server checks these at start-up and stops with a clear list if one is missing or wrong (`Invalid environment variables: …`).
 
 **After changing a variable on Vercel you must redeploy:** Deployments → ⋯ on the latest → **Redeploy**. Existing deployments keep the old values.
+
+### 5a. Setting up email for "Forgot password?" (one time, about 15 minutes)
+
+The app sends two emails: the reset link and "your password was changed". It uses an email service's web API. **Brevo** is the default because its free plan can send from a single verified address (your Gmail) without owning a domain. Its free plan was about 300 emails a day when this was written; check the current plan on brevo.com.
+
+1. **Create a Brevo account** at https://www.brevo.com (free plan, no card). Complete the profile questions; Brevo may need to activate your account before it sends.
+2. **Verify a sender:** Brevo → your name (top right) → **Senders, Domains & Dedicated IPs** → **Senders** → **Add a sender**.
+   - Name: `Finance Tracker`. Email: the address the emails should come from (e.g. your Gmail).
+   - Brevo emails that address a code or link: confirm it.
+3. **Create an API key:** Brevo → **SMTP & API** → **API Keys** → **Generate a new API key**, named `finance-tracker`. Copy it now (it's shown once). Treat it like a password.
+4. **If Brevo's "Authorized IPs" security option is on, turn it off** (Security → Authorized IPs). Vercel's addresses change, so an IP allow-list would block every email.
+5. **Add the variables on Vercel** → Settings → Environment Variables, **Production** only:
+   - `EMAIL_PROVIDER` = `brevo`
+   - `EMAIL_API_KEY` = the key
+   - `EMAIL_FROM` = `Finance Tracker <the-verified-address@gmail.com>`, exactly the address verified in step 2
+   - `APP_URL` = `https://finance-tracker-swart-psi.vercel.app`
+
+   Then Deployments → ⋯ → **Redeploy**.
+6. **Test:**
+   - `npm run check:deploy -- https://finance-tracker-swart-psi.vercel.app` should show `PASS  Password reset by email is set up`.
+   - Then try it for real: log out → **Forgot password?** → your email → open the link → choose a new password.
+
+**Spam folder:** an email "from" a Gmail address but sent by Brevo can't be fully verified by Gmail, so the first one may land in **Spam**. Mark it **Not spam** and later ones usually arrive normally. For the best delivery, buy a domain (about ₹800–1,000 a year) and add it in Brevo (Senders, Domains → **Domains** → authenticate, which adds SPF/DKIM records); then use `EMAIL_FROM=Finance Tracker <no-reply@yourdomain.in>`.
+
+**Using Resend instead** (https://resend.com): it needs your own domain to email anyone except yourself.
+- Add and verify the domain in Resend.
+- Create an API key.
+- Set `EMAIL_PROVIDER=resend`, `EMAIL_API_KEY`, and `EMAIL_FROM=Finance Tracker <no-reply@yourdomain.in>`.
+
+**Locally** nothing needs setting up: when you use *Forgot password?* on http://localhost:5173, the email, including the link, is printed in the terminal running `npm run dev:server`.
+
+**Adding another provider later:** the sending code is in `server/src/services/email.service.js`. Each provider is one small `fetch` call, and the message texts are at the bottom of the file.
 
 ### Rotating secrets (if one leaks, or once a year)
 
@@ -150,6 +188,7 @@ The server checks these at start-up and stops with a clear list if one is missin
 |---|---|---|
 | **Atlas database password** | Atlas → **Database Access** → the user → **Edit** → new password. Update `MONGODB_URI` on Vercel (and locally) → **Redeploy** | The site is down for the minute between the two steps |
 | **`JWT_SECRET`** | Generate a new one (section 3), put it on Vercel → **Redeploy** | **Everyone is logged out** (all old sessions stop working). No data is lost |
+| **`EMAIL_API_KEY`** | Brevo → SMTP & API → API Keys: create a new key, put it on Vercel → **Redeploy**, then delete the old key in Brevo | None, if done in that order |
 
 If `server/.env` was ever committed or shared by mistake, rotate **both**: removing the file from Git does not remove it from history.
 
@@ -211,7 +250,13 @@ Look in this order. The error message almost always tells you what's wrong; read
 | Every API call gives 500, Vercel logs show `Invalid environment variables` | A variable is missing on Vercel, or was added for the wrong environment | Vercel → Settings → Environment Variables (**Production** ticked) → **Redeploy** |
 | Writes fail with "space quota" / storage errors | Atlas M0 storage (512 MB) is full; very unlikely for one person | Download a backup; delete old data or create a new free cluster (section 13) |
 | Can't log in: "Too many attempts" | 10 failed logins per 15 minutes (per network and per email) | Wait 15 minutes. `npm run reset-password` also lifts the email lock |
-| Forgot password | No email reset yet | [Reset a forgotten password](#reset-a-forgotten-password) |
+| Forgot password | — | **Forgot password?** on the login page. If email isn't working, see the next rows or use the [admin script](#reset-a-forgotten-password) |
+| "Password reset by email is not set up on this site yet" | The `EMAIL_*`/`APP_URL` variables are missing on Vercel | Section 5a, then **Redeploy** |
+| "We couldn't send the email right now" | The email service refused. **Vercel → Logs** shows its reply after `Email (brevo) refused: HTTP …` | **401**: wrong or deleted `EMAIL_API_KEY`, or Brevo's *Authorized IPs* is on (5a step 4). **400** mentioning the sender: `EMAIL_FROM` isn't a verified sender (5a step 2). **402/403**: account not activated yet, or daily limit reached; see the Brevo dashboard |
+| "If an account exists…" but no email arrives | Wrong address, Spam folder, or delivery delay | Check **Spam/Promotions**; make sure it's the sign-up address; Brevo → **Transactional → Logs** shows whether it was delivered or bounced. Only the newest link works |
+| The link in the email opens `localhost` or the wrong site | `APP_URL` on Vercel is wrong | Fix `APP_URL` → **Redeploy**, then ask for a new email |
+| "This reset link is invalid, already used or expired" | The link is older than 30 minutes, was already used, or a newer email was requested | Ask for a new link and use the **newest** email |
+| "Too many reset emails for this address" | 3 requests an hour per address (5 per network) stop inbox flooding | Wait an hour; meanwhile check Spam for the emails already sent |
 | Logged out on every device at once | `JWT_SECRET` changed, or "Log out of all devices" was used | Log in again; nothing is lost |
 | Login works, then you are immediately logged out (live only) | The cookie isn't kept: usually the site is opened over `http://` or in an embedded browser | Use the `https://` address in a normal browser |
 | An **old version** keeps showing after a deploy | Browser or installed app still running the previous code | Close all tabs/the app and reopen; or `Ctrl+F5`. Last resort: `F12` → **Application** → **Storage** → **Clear site data** (logs you out, keeps your data online) |
@@ -225,7 +270,9 @@ Look in this order. The error message almost always tells you what's wrong; read
 
 ## Reset a forgotten password
 
-There is no "forgot password" email yet. Whoever has the database connection string (you) can set a new password from a computer:
+**Normally:** the login page → **Forgot password?** → the emailed link (needs section 5a set up once).
+
+**When email isn't available** (not set up, or the email account itself is lost), whoever has the database connection string (you) can set a new password from a computer:
 
 ```powershell
 # Local database (uses server/.env)
@@ -356,6 +403,7 @@ If it fails and the fix isn't clear, go back: `git checkout main` (then `git bra
 | **What is printed** | `data-print="hide"` / `"only"` attributes on elements, and the `@media print` block in `client/src/index.css` |
 | **Security headers / CSP** | `vercel.json` → `headers` (page); `helmet()` in `server/src/app.js` (API) |
 | **App name, icon, shortcuts** (installed app) | `client/public/manifest.webmanifest`, `client/public/icons/`, `client/index.html` |
+| The in-app **Quick guide** text | `client/src/features/guide/GuidePage.jsx` (`STEPS` and `TIPS` at the top). Keep it in step with `docs/USER_GUIDE.md` |
 | A new **page** | A component in `client/src/features/<name>/`, a `<Route>` in `client/src/App.jsx`, and a menu entry in `client/src/components/layout/navItems.js` |
 | A new **API endpoint** | Validator (`server/src/validators/`), controller (`server/src/controllers/`), route (`server/src/routes/`), a test in `server/tests/`, and a function in `client/src/api/` |
 
@@ -416,7 +464,7 @@ The full reasoning is in [ARCHITECTURE.md](ARCHITECTURE.md).
    - the relevant file(s)
    - the related section of this document or ARCHITECTURE.md
 
-   Ask it to explain before changing anything. Then run `npm test` before you push; the 234 tests catch most accidental breakage.
+   Ask it to explain before changing anything. Then run `npm test` before you push; the 251 tests catch most accidental breakage.
 6. **Use Git as your undo button.**
    - Not committed yet: `git restore <file>` throws away changes to one file.
    - Last commit (already pushed): `git revert HEAD`, then push.

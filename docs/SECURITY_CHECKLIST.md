@@ -27,6 +27,9 @@ checked by hand on the live site (see the end of this file).
 | Forged, expired, unsigned and other-secret tokens rejected | auto: `security.test.js` |
 | "Log out of all devices" and account deletion end every old session | auto: `auth.test.js`, `security.test.js` |
 | Rate limits: login (per IP and per email), sign-up, delete account | auto: `auth.test.js`, `security.test.js` |
+| Password reset: same answer for unknown emails; token stored only as a hash; 30-minute expiry; single use; only the newest link works; logs out every device; same password rules; limits per address and per IP | auto: `passwordReset.test.js` |
+| The reset link uses `APP_URL`, never the request's Host header (no link poisoning) | auto: `passwordReset.test.js` |
+| The reset token is removed from the address bar; the email's HTML escapes the user's name | browser check (reset flow), email request check |
 
 ## Privacy between users (IDOR)
 
@@ -77,4 +80,5 @@ checked by hand on the live site (see the end of this file).
 - **Atlas network access is open to `0.0.0.0/0`**, because Vercel's IP addresses change. Protection relies on the strong database password and TLS.
 - **Sign-up reveals whether an email is registered** ("An account with this email already exists"). It's limited to 5 tries per hour per address, and hiding it would need email verification (V2).
 - **The per-email login limit** lets someone who knows your email block logins to it for up to 15 minutes. It's what stops slow password guessing from many computers.
-- **There's no password reset or email change yet** (planned for V2). Write your password down in a password manager.
+- **Email can't be changed yet**, and password reset depends on access to that inbox. Keep your email account secure (two-factor login).
+- **A reset request for a real account takes slightly longer** (the email is sent) than for an unknown one, and shows an error if the email service is down. Both could hint that an account exists. Accepted: sign-up already reveals this (above).

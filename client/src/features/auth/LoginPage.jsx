@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 import { Alert } from '../../components/ui/Alert.jsx';
 import { Button } from '../../components/ui/Button.jsx';
 import { PasswordField } from '../../components/ui/PasswordField.jsx';
@@ -12,6 +12,7 @@ import { useLogin } from './useAuth.js';
 export default function LoginPage() {
   useDocumentTitle('Log in');
   const [form, setForm] = useState({ email: '', password: '' });
+  const location = useLocation();
   const login = useLogin();
   const errors = fieldErrors(login.error);
 
@@ -37,6 +38,7 @@ export default function LoginPage() {
       }
     >
       <form onSubmit={handleSubmit} noValidate className="space-y-4">
+        {location.state?.message && !login.error && <Alert tone="success">{location.state.message}</Alert>}
         {login.error && Object.keys(errors).length === 0 && <Alert>{login.error.message}</Alert>}
         <TextField
           label="Email"
@@ -57,6 +59,11 @@ export default function LoginPage() {
           onChange={update('password')}
           error={errors.password}
         />
+        <p className="-mt-2 text-right text-sm">
+          <Link to="/forgot-password" state={{ email: form.email }} className={linkClasses}>
+            Forgot password?
+          </Link>
+        </p>
         <Button type="submit" loading={login.isPending} className="w-full">
           Log in
         </Button>

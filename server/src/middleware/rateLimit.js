@@ -31,3 +31,10 @@ async function increment(key, expiresAt) {
     return RateLimit.findOneAndUpdate(filter, update, options);
   }
 }
+
+// Forgets a limiter's counters for one key, e.g. lifts the per-email login
+// lock once the owner has proved access to the email by resetting the password.
+export function clearRateLimit(name, key) {
+  const escaped = String(key).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return RateLimit.deleteMany({ key: { $regex: `^${name}:${escaped}:` } });
+}

@@ -27,3 +27,12 @@ export const updateMe = (changes) =>
 
 // Deletes the account and every transaction, budget and category in it.
 export const deleteAccount = (password) => api('/auth/me', { method: 'DELETE', body: { password } });
+
+// Emails a reset link (if the account exists). Resolves to the server's
+// message, which is the same whether or not it exists.
+export const requestPasswordReset = (email) =>
+  api('/auth/forgot-password', { method: 'POST', body: { email } }).then((data) => data.message);
+
+// token: from the emailed link. Logs out every device.
+export const resetPassword = ({ token, password }) =>
+  api('/auth/reset-password', { method: 'POST', body: { token, password } }).then((data) => data.message);

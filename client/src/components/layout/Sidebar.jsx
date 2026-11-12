@@ -1,4 +1,4 @@
-import { LogOut } from 'lucide-react';
+import { CircleHelp, LogOut } from 'lucide-react';
 import { NavLink } from 'react-router';
 import { useLogout, useMe } from '../../features/auth/useAuth.js';
 import { ThemeToggle } from '../../features/theme/ThemeToggle.jsx';
@@ -36,6 +36,20 @@ export function Sidebar() {
           ))}
         </ul>
       </nav>
+
+      <NavLink
+        to="/guide"
+        className={({ isActive }) =>
+          `mb-3 flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-teal-600 ${
+            isActive
+              ? 'bg-teal-50 text-teal-800 dark:bg-teal-950 dark:text-teal-200'
+              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100'
+          }`
+        }
+      >
+        <CircleHelp className="size-5" aria-hidden="true" />
+        Quick guide
+      </NavLink>
 
       <div className="border-t border-slate-200 pt-4 dark:border-slate-800">
         <div className="flex items-center justify-between gap-2 px-2">

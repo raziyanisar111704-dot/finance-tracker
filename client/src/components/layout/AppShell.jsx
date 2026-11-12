@@ -1,4 +1,5 @@
-import { Outlet } from 'react-router';
+import { CircleHelp } from 'lucide-react';
+import { Link, Outlet } from 'react-router';
 import { ThemeToggle } from '../../features/theme/ThemeToggle.jsx';
 import { Logo } from '../ui/Logo.jsx';
 import { BottomNav } from './BottomNav.jsx';
@@ -24,7 +25,16 @@ export function AppShell() {
       <div className="lg:pl-64" data-print="flush">
         <header data-print="hide" className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white/95 px-4 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur lg:hidden dark:border-slate-800 dark:bg-slate-900/95">
           <Logo />
-          <ThemeToggle />
+          <div className="flex items-center gap-1">
+            <Link
+              to="/guide"
+              aria-label="Quick guide"
+              className="inline-flex size-11 items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-teal-600 dark:text-slate-300 dark:hover:bg-slate-800"
+            >
+              <CircleHelp className="size-5" aria-hidden="true" />
+            </Link>
+            <ThemeToggle />
+          </div>
         </header>
         <div data-print="hide">
           <OfflineBanner />

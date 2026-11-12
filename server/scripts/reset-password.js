@@ -60,7 +60,11 @@ try {
     } else {
       await User.updateOne(
         { _id: user._id },
-        { $set: { passwordHash: await hashPassword(password) }, $inc: { tokenVersion: 1 } },
+        {
+          $set: { passwordHash: await hashPassword(password) },
+          $unset: { resetTokenHash: 1, resetTokenExpiresAt: 1 },
+          $inc: { tokenVersion: 1 },
+        },
       );
       // Lift a login lock-out from the failed attempts, if there is one.
       await RateLimit.deleteMany({ key: { $regex: `^login-email:${email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}:` } });

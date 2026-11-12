@@ -12,6 +12,7 @@ Features:
 - month, year and custom reports, with printing and PDF
 - CSV import (bank statements) with preview, duplicate detection and undo
 - CSV and JSON export
+- password reset by email
 - light and dark mode
 - installable app that opens offline
 
@@ -19,7 +20,7 @@ Features:
 
 | Document | For |
 |---|---|
-| [docs/USER_GUIDE.md](docs/USER_GUIDE.md) | **Using the app:** every screen, importing, printing, backups, FAQ |
+| [docs/USER_GUIDE.md](docs/USER_GUIDE.md) | **Using the app:** every screen, importing, printing, backups, FAQ. (The app itself has a short **Quick guide** page at `/guide`.) |
 | [docs/MAINTENANCE.md](docs/MAINTENANCE.md) | **Looking after it:** setup, deploying, rollback, troubleshooting by symptom, password reset, backups, updates, future risks, where to change things |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | **How it's built:** design, database schema, calculations, security decisions, API |
 | [docs/SECURITY_CHECKLIST.md](docs/SECURITY_CHECKLIST.md) | **What is tested** and the manual checks after each deploy |
@@ -71,6 +72,10 @@ deployments of other branches must not write into your real data):
 | `MONGODB_URI` | Atlas connection string for the app's database user |
 | `MONGODB_DB_NAME` | `finance-tracker` |
 | `JWT_SECRET` | 48+ random characters, different from your local one |
+| `EMAIL_PROVIDER` | `brevo` (or `resend`), for "Forgot password?" emails |
+| `EMAIL_API_KEY` | API key from Brevo / Resend |
+| `EMAIL_FROM` | `Finance Tracker <your-verified-sender@gmail.com>` |
+| `APP_URL` | `https://your-app.vercel.app` (used to build the link in the email) |
 
 Don't set `NODE_ENV` (Vercel sets it to `production`) or `DNS_SERVERS` (local only).
 
@@ -84,7 +89,7 @@ npm run check:deploy -- https://your-app.vercel.app --with-account
 
 Atlas's free tier has no automatic backups: download **Settings → Your data → Download backup (JSON)** and the CSV regularly.
 
-Forgot your password? There's no reset email yet. Set a new one from your computer with `npm run reset-password -- you@example.com` (see [MAINTENANCE.md](docs/MAINTENANCE.md#reset-a-forgotten-password)).
+**Forgot password?** on the login page emails a reset link once email is set up on Vercel ([MAINTENANCE.md §5a](docs/MAINTENANCE.md#5a-setting-up-email-for-forgot-password-one-time-about-15-minutes)). Without email, set a new password from your computer with `npm run reset-password -- you@example.com`.
 
 ## Project layout
 

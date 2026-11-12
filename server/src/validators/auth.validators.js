@@ -56,3 +56,13 @@ export const updateMeSchema = z
 export const deleteMeSchema = z.object({
   password: text('Password').min(1, 'Password is required.'),
 });
+
+export const forgotPasswordSchema = z.object({ email });
+
+// The token from the emailed link: 32 random bytes in base64url = 43 characters.
+export const resetPasswordSchema = z.object({
+  token: z
+    .string({ error: 'This reset link is invalid. Ask for a new one.' })
+    .regex(/^[A-Za-z0-9_-]{43}$/, 'This reset link is invalid. Ask for a new one.'),
+  password: newPassword,
+});
